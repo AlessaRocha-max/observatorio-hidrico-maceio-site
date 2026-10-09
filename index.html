@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observatório de Chuva de Maceió</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="Chuva medida em Maceió desde 2020 pelo INMET e pelo CEMADEN: último mês, mapa das estações e série histórica.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body data-pagina="inicio">
+
+<main class="largura">
+
+  <section class="cabecalho heroi">
+    <div class="heroi-texto">
+      <span class="etiqueta">Versão preliminar · PIBITI 2026</span>
+      <h1 class="titulo-degrade">Observatório de Chuva de Maceió</h1>
+      <p class="heroi-sub">Chuva medida, organizada e verificada</p>
+      <p class="subtitulo">Quanto chove na cidade, onde chove mais e quão confiável é cada número — com os
+        pluviômetros do INMET e do CEMADEN, desde 2020.</p>
+      <ul class="numeros-heroi" id="numeros" aria-label="O projeto em números"></ul>
+      <div class="cartao escolha" aria-labelledby="titulo-escolha">
+        <p class="escolha-titulo" id="titulo-escolha">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+          Qual estação você quer ver?</p>
+        <p class="nota" style="margin:.2rem 0 .8rem">Escolha um bairro com pluviômetro para ver a chuva dele.</p>
+        <select id="escolha-estacao" aria-label="Estação"></select>
+        <div class="escolha-botoes">
+          <button class="botao" type="button" id="ver-no-mapa">Ver no mapa
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <a class="botao claro" id="ver-serie" href="historico.html">Ver a série histórica</a>
+        </div>
+      </div>
+    </div>
+    <div class="ilustracao" aria-hidden="true">
+      <svg viewBox="0 0 240 260">
+        <defs>
+          <linearGradient id="agua" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc0ff"/><stop offset="1" stop-color="#2f74d6"/></linearGradient>
+          <linearGradient id="vidro" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity=".22"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".08"/><stop offset="1" stop-color="#ffffff" stop-opacity=".2"/></linearGradient>
+          <clipPath id="tubo"><rect x="78" y="70" width="84" height="160" rx="12"/></clipPath>
+        </defs>
+        <ellipse cx="120" cy="244" rx="70" ry="9" fill="#000" opacity=".18"/>
+        <path d="M60 52h120l-30 26H90z" fill="#ffffff" opacity=".9"/>
+        <path d="M60 52h120" stroke="#cfe0fb" stroke-width="5" stroke-linecap="round"/>
+        <g clip-path="url(#tubo)">
+          <rect x="78" y="70" width="84" height="160" fill="#ffffff" opacity=".08"/>
+          <g class="nivel">
+            <rect x="78" y="140" width="84" height="100" fill="url(#agua)"/>
+            <path class="onda-agua" d="M70 140 q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 v12 h-120z" fill="#9fd0ff" opacity=".7"/>
+          </g>
+        </g>
+        <rect x="78" y="70" width="84" height="160" rx="12" fill="url(#vidro)" stroke="#ffffff" stroke-opacity=".7" stroke-width="3"/>
+        <g stroke="#ffffff" stroke-opacity=".75" stroke-width="2">
+          <line x1="140" y1="95" x2="156" y2="95"/><line x1="146" y1="115" x2="156" y2="115"/><line x1="140" y1="135" x2="156" y2="135"/>
+          <line x1="146" y1="155" x2="156" y2="155"/><line x1="140" y1="175" x2="156" y2="175"/><line x1="146" y1="195" x2="156" y2="195"/>
+          <line x1="140" y1="215" x2="156" y2="215"/>
+        </g>
+        <g class="gotas" fill="#bfe0ff">
+          <path d="M100 0c-3 6-6 9-6 13a6 6 0 0 0 12 0c0-4-3-7-6-13z"/>
+          <path d="M138 0c-3 6-6 9-6 13a6 6 0 0 0 12 0c0-4-3-7-6-13z"/>
+          <path d="M119 0c-3 6-6 9-6 13a6 6 0 0 0 12 0c0-4-3-7-6-13z"/>
+        </g>
+        <text x="120" y="258" text-anchor="middle" fill="#ffffff" opacity=".75" font-size="11" font-weight="600" letter-spacing="2">PLUVIÔMETRO</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="sintese bloco" aria-labelledby="titulo-sintese">
+    <div class="cartao">
+      <p class="rotulo" id="titulo-sintese">Último mês com dados</p>
+      <p class="heroi-valor" id="sintese-valor"></p>
+      <p class="heroi-desc" id="sintese-desc"></p>
+      <p class="nota" id="sintese-comparacao"></p>
+      <div class="par" id="sintese-par"></div>
+      <p class="nota" id="sintese-nota"></p>
+    </div>
+    <div class="mini" id="mini"></div>
+  </section>
+
+  <section class="cartao bloco" id="mapa-secao" aria-labelledby="titulo-mapa">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-mapa">Onde choveu mais em <span id="mapa-mes"></span></h2>
+        <p class="texto">Os pluviômetros automáticos de Maceió, com o total de chuva do último mês com dados.
+          Clique numa estação para ver os detalhes.</p>
+      </div>
+    </div>
+    <div class="mapa-escuro">
+      <div id="mapa" class="mapa" role="img" aria-label="Mapa das estações de chuva em Maceió com o total do mês"></div>
+      <aside class="painel-estacao" id="painel" aria-live="polite"></aside>
+    </div>
+    <div class="legenda-mapa" id="legenda-mapa"></div>
+  </section>
+
+  <section class="cartao bloco" aria-labelledby="titulo-diario">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-diario">Chuva dia a dia — últimos 30 dias com dados</h2>
+        <p class="texto" id="diario-texto"></p>
+      </div>
+      <div class="legenda" id="legenda-diario"></div>
+    </div>
+    <div class="grafico" id="grafico-diario"></div>
+    <div class="rodape-cartao">
+      <span>Dia sem barra: nenhuma estação com o dia completo (pelo menos 20 horas medidas).</span>
+      <span>Fonte: CEMADEN · INMET</span>
+    </div>
+  </section>
+
+  <section class="bloco secao-modulos" aria-labelledby="titulo-modulos">
+    <h2 class="titulo-secao" id="titulo-modulos">O que você encontra aqui</h2>
+    <p class="texto" style="margin-bottom:1.25rem">Cada página responde a uma pergunta sobre a chuva em Maceió.</p>
+    <div class="modulos">
+      <a class="cartao modulo" href="monitoramento.html">
+        <span class="icone"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>
+        <h3>Monitoramento</h3>
+        <p>Quanto choveu em cada estação nos últimos dias com dados: em 1 dia, 72 horas, 7 ou 30 dias.</p>
+        <span>Ver as estações →</span>
+      </a>
+      <a class="cartao modulo" href="historico.html">
+        <span class="icone"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg></span>
+        <h3>Série histórica</h3>
+        <p>Chuva mês a mês e ano a ano desde 2020, mapa de calor, recordes e a cobertura de cada ano.</p>
+        <span>Ver a série →</span>
+      </a>
+      <a class="cartao modulo" href="estacoes.html">
+        <span class="icone"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+        <h3>Estações e qualidade</h3>
+        <p>Onde fica cada pluviômetro, as chuvas extremas de cada ano e a qualidade de cada mês de dados.</p>
+        <span>Ver as estações →</span>
+      </a>
+      <a class="cartao modulo" href="decisao.html">
+        <span class="icone"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h7M4 18h4"/><path d="m14 15 2.5 2.5L21 12"/></svg></span>
+        <h3>Apoio à decisão</h3>
+        <p>Classificação em grupo pelo método CPP-ROC-SORT, com um exemplo usando as chuvas fortes de cada estação.</p>
+        <span>Classificar →</span>
+      </a>
+      <a class="cartao modulo" href="sobre.html">
+        <span class="icone"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span>
+        <h3>Dados e método</h3>
+        <p>De onde vêm os dados, como as contas são feitas e as tabelas para baixar em CSV.</p>
+        <span>Baixar os dados →</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="titulo-monitoradas">
+    <h2 class="titulo-secao" id="titulo-monitoradas">Estações monitoradas</h2>
+    <p class="texto" style="margin-bottom:1.25rem" id="texto-monitoradas"></p>
+    <div class="monitoradas" id="monitoradas"></div>
+  </section>
+
+</main>
+
+<script src="dados.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="comum.js"></script>
+<script src="inicio.js"></script>
+</body>
+</html>

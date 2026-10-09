@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dados e método · Observatório de Chuva de Maceió</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="De onde vêm os dados de chuva de Maceió, como as contas são feitas e as tabelas para baixar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body data-pagina="sobre">
+
+<main class="largura">
+
+  <section class="cabecalho">
+    <span class="etiqueta">Dados e método</span>
+    <h1>De onde vêm os números</h1>
+    <p class="subtitulo">Todas as fontes são públicas. Um robô baixa e arquiva os dados; nada é corrigido à mão.</p>
+  </section>
+
+  <section class="colunas bloco">
+    <div class="cartao">
+      <h2>Fontes</h2>
+      <ul>
+        <li><strong>INMET</strong> — estação automática A303 (campus da UFAL). Arquivos históricos anuais do portal do INMET.</li>
+        <li><strong>CEMADEN</strong> — 13 pluviômetros automáticos em Maceió, baixados mês a mês no Mapa Interativo.</li>
+        <li><strong>Open-Meteo</strong> — estimativa de modelo em 2 pontos. Subestima a chuva medida em 26–33% ao ano; não substitui medição.</li>
+      </ul>
+    </div>
+    <div class="cartao">
+      <h2>Como as contas são feitas</h2>
+      <ul>
+        <li>Leituras somadas por hora, dia (horário de Maceió), mês e ano.</li>
+        <li>Um mês ou ano só tem total quando pelo menos 90% dos dias foram medidos. Hora sem leitura fica vazia — nunca vira zero.</li>
+        <li>Validação: o INMET deu 1.915 mm em 2025, contra ~1.900 mm do balanço da Defesa Civil. CEMADEN × INMET: correlação 0,98 nos meses bons.</li>
+      </ul>
+    </div>
+    <div class="cartao">
+      <h2>Arquivamento</h2>
+      <ul>
+        <li>Um robô baixa os dados todo dia e guarda cada arquivo com data, hora, origem e impressão digital (<em>hash</em>).</li>
+        <li>Nada é sobrescrito nem corrigido à mão: os meses suspeitos ficam marcados, não apagados.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="grade-2 bloco">
+    <div class="cartao" id="baixar">
+      <h2>Baixar os dados</h2>
+      <p class="texto" style="margin-bottom:1rem">Tabelas em CSV (separador ponto e vírgula, decimal com vírgula — abrem direto no Excel).
+        Na página <a href="historico.html">Série histórica</a> dá para baixar só a série e os anos escolhidos.</p>
+      <div class="baixar">
+        <a href="dados/chuva_mensal.csv" download>Chuva de cada mês, por estação <span>chuva_mensal.csv</span></a>
+        <a href="dados/chuva_anual.csv" download>Chuva de cada ano, por estação <span>chuva_anual.csv</span></a>
+        <a href="dados/chuva_extremos.csv" download>Chuvas extremas por ano e estação <span>chuva_extremos.csv</span></a>
+      </div>
+    </div>
+    <div class="cartao criterio">
+      <h2>O que significa cada coluna</h2>
+      <h3>total_mm</h3>
+      <p>Chuva do período. Fica vazio quando menos de 90% dos dias foram medidos.</p>
+      <h3>soma_parcial_mm</h3>
+      <p>Soma só do que foi medido. Serve para conferir, não é o total.</p>
+      <h3>cobertura_pct</h3>
+      <p>Porcentagem dos dias medidos (pelo menos 20 das 24 horas).</p>
+      <h3>plausibilidade</h3>
+      <p>"ok", ou o motivo de o mês ser suspeito (zero o mês todo, muito abaixo das vizinhas).</p>
+    </div>
+  </section>
+
+</main>
+
+<script src="dados.js"></script>
+<script src="comum.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estações · Observatório de Chuva de Maceió</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="Os pluviômetros de Maceió, as chuvas extremas de cada ano e a qualidade de cada mês de dados.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body data-pagina="estacoes">
+
+<main class="largura">
+
+  <section class="cabecalho">
+    <span class="etiqueta">Estações</span>
+    <h1>Onde a chuva é medida</h1>
+    <p class="subtitulo">Pluviômetros automáticos do INMET (1) e do CEMADEN (13) dentro de Maceió, as chuvas extremas
+      de cada ano e a qualidade de cada mês de dados.</p>
+  </section>
+
+  <section class="cartao bloco" aria-labelledby="titulo-rede">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-rede">Rede de estações</h2>
+        <p class="texto">Os pontos do Open-Meteo não são estações: são pontos de um modelo de previsão, usados só para comparação.</p>
+      </div>
+      <div class="legenda" id="legenda-rede"></div>
+    </div>
+    <div class="estacoes-grade">
+      <div id="mapa" class="mapa" role="img" aria-label="Mapa das estações de chuva em Maceió"></div>
+      <div class="rolagem"><table id="tabela-estacoes"></table></div>
+    </div>
+  </section>
+
+  <section class="cartao bloco tabela-cartao" aria-labelledby="titulo-extremos">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-extremos">Chuvas extremas de cada ano</h2>
+        <p class="texto">O maior volume registrado em qualquer estação, por ano. Em 72 horas é a soma de três dias seguidos —
+          a medida que mais se relaciona com deslizamentos e alagamentos.</p>
+      </div>
+    </div>
+    <div class="rolagem"><table id="tabela-extremos"></table></div>
+    <div class="rodape-cartao"><span>⚠ Em verificação: 132,2 mm em 1 hora em Benedito Bentes I (12/05/2024) — estamos conferindo com as estações vizinhas.</span></div>
+  </section>
+
+  <section class="cartao bloco" aria-labelledby="titulo-qualidade">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-qualidade">Qualidade dos dados</h2>
+        <p class="texto">Cada quadradinho é um mês de uma estação. Passe o mouse para ver o detalhe.</p>
+      </div>
+      <div class="legenda" id="legenda-qualidade"></div>
+    </div>
+    <div class="rolagem"><div id="grafico-qualidade"></div></div>
+  </section>
+
+</main>
+
+<script src="dados.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="comum.js"></script>
+<script src="estacoes.js"></script>
+</body>
+</html>

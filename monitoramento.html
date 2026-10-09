@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoramento · Observatório de Chuva de Maceió</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="Chuva em cada pluviômetro de Maceió nos últimos 30 dias com dados.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body data-pagina="monitoramento">
+
+<main class="largura">
+
+  <section class="cabecalho">
+    <span class="etiqueta">Monitoramento</span>
+    <h1>Chuva em cada estação</h1>
+    <p class="subtitulo" id="subtitulo"></p>
+  </section>
+
+  <section class="cartao bloco" aria-label="Filtros">
+    <div class="filtros">
+      <label><span class="rotulo">Até o dia</span><select id="dia"></select></label>
+      <div>
+        <span class="rotulo" style="display:block;margin-bottom:.3rem">Janela</span>
+        <div class="segmentos" id="janela" role="group" aria-label="Janela de tempo"></div>
+      </div>
+      <span class="espaco"></span>
+      <button class="botao claro" type="button" id="baixar">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        Baixar CSV</button>
+    </div>
+  </section>
+
+  <section class="cartao bloco" aria-labelledby="titulo-regua">
+    <div class="cartao-cabeca" style="margin-bottom:.5rem">
+      <div>
+        <h2 id="titulo-regua">Régua da chuva em 24 horas</h2>
+        <p class="texto" id="texto-regua"></p>
+      </div>
+      <div class="legenda" id="legenda-regua"></div>
+    </div>
+    <div id="regua"></div>
+  </section>
+
+  <div class="grade-2 bloco">
+    <section aria-labelledby="titulo-cartoes">
+      <div class="cartao-cabeca" style="margin-bottom:.75rem">
+        <h2 id="titulo-cartoes">Estações</h2>
+        <span class="nota" id="nota-cartoes" style="margin:0"></span>
+      </div>
+      <div class="cartoes-estacao" id="cartoes"></div>
+    </section>
+
+    <aside style="display:flex;flex-direction:column;gap:1.25rem">
+      <div class="cartao criterio">
+        <p class="rotulo">Faixas provisórias</p>
+        <h2 style="margin-top:.25rem">As 5 faixas de chuva em 24 horas</h2>
+        <p style="margin-top:.4rem">Rascunho para organizar a leitura. <strong>Não são os níveis oficiais da Defesa Civil</strong>,
+          que ainda vão ser definidos com a fonte.</p>
+        <div class="faixas" id="faixas"></div>
+      </div>
+      <div class="cartao" id="cobertura-rede"></div>
+    </aside>
+  </div>
+
+  <section class="cartao bloco" aria-labelledby="titulo-comparar">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-comparar">Comparar estações dia a dia</h2>
+        <p class="texto">Marque até 3 estações. A linha cinza tracejada é a chuva típica do dia (mediana das estações).</p>
+      </div>
+    </div>
+    <div class="chips" id="escolha-comparar" style="margin:0 0 1rem"></div>
+    <div class="legenda" id="legenda-comparar" style="margin-bottom:.5rem"></div>
+    <div class="grafico" id="grafico-comparar"></div>
+    <div class="rodape-cartao">
+      <span>Dia sem ponto: a estação não mediu pelo menos 20 horas naquele dia — a linha fica interrompida, nunca vira zero.</span>
+      <span>Fonte: CEMADEN · INMET</span>
+    </div>
+  </section>
+
+</main>
+
+<script src="dados.js"></script>
+<script src="comum.js"></script>
+<script src="monitoramento.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apoio à decisão · Observatório de Chuva de Maceió</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="Classificação em grupo pelo método CPP-ROC-SORT, com um exemplo usando as chuvas fortes medidas nas estações de Maceió.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body data-pagina="decisao">
+
+<main class="largura">
+
+  <section class="cabecalho">
+    <span class="etiqueta">Apoio à decisão</span>
+    <h1>Classificar em grupo</h1>
+    <p class="subtitulo">Método CPP-ROC-SORT: cada pessoa dá notas, o método junta as opiniões e coloca cada opção numa classe,
+      dizendo também quando ela fica no limite entre duas classes.</p>
+  </section>
+
+  <section class="grade-2 bloco">
+    <div class="cartao">
+      <h2>Como usar</h2>
+      <ol class="passos">
+        <li><strong>Classes</strong> — as caixas em que as opções vão cair, da menor para a maior.</li>
+        <li><strong>Critérios</strong> — o que é avaliado, do mais importante para o menos importante. A ordem define o peso de cada um.</li>
+        <li><strong>Notas</strong> — cada decisor dá uma nota de 1 a 5 para cada opção em cada critério, e diz onde fica a fronteira entre as classes.</li>
+        <li><strong>Resultado</strong> — aparece na hora, embaixo. Mude qualquer número e veja o que acontece.</li>
+      </ol>
+    </div>
+    <div class="cartao">
+      <h2>Sobre o exemplo</h2>
+      <p class="texto" id="texto-exemplo"></p>
+      <div class="alerta"><strong>Não é mapa de risco nem alerta.</strong>
+        <span class="texto">As fronteiras entre as classes e a incerteza são valores de exemplo, que o grupo ainda vai definir.</span></div>
+    </div>
+  </section>
+
+  <section class="cartao bloco" aria-labelledby="titulo-ajustes">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-ajustes">1. Classes e critérios</h2>
+        <p class="texto">Tudo fica guardado neste navegador enquanto você mexe.</p>
+      </div>
+      <div class="acoes">
+        <button type="button" class="botao claro" id="recomecar-exemplo">Recomeçar com o exemplo de chuva</button>
+        <button type="button" class="botao claro" id="recomecar-branco">Começar em branco</button>
+      </div>
+    </div>
+    <div class="ajustes">
+      <div>
+        <h3>Classes <span class="sec">(da menor para a maior)</span></h3>
+        <div class="lista-campos" id="classes"></div>
+        <div class="linha-botoes">
+          <button type="button" class="botao claro pequeno" id="mais-classe">+ classe</button>
+        </div>
+      </div>
+      <div>
+        <h3>Critérios <span class="sec">(do mais importante para o menos)</span></h3>
+        <div class="lista-campos" id="criterios"></div>
+        <div class="linha-botoes">
+          <button type="button" class="botao claro pequeno" id="mais-criterio">+ critério</button>
+        </div>
+      </div>
+      <div>
+        <h3>Limite de indiferença <span class="sec">(ε)</span></h3>
+        <label class="campo-rotulado"><input type="number" class="campo" id="epsilon" min="0" max="1" step="0.05" inputmode="decimal">
+          <span class="nota">Quando o índice δ de uma opção fica tão perto da fronteira (entre −ε e +ε), o resultado mostra as
+          duas classes, em vez de forçar uma. Use de 0 a 1. Com 0, cada opção cai sempre numa classe só.</span></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="cartao bloco" aria-labelledby="titulo-notas">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-notas">2. Notas de cada decisor</h2>
+        <p class="texto">Notas de 1 (pouco) a 5 (muito). As linhas em cinza são as fronteiras entre as classes.</p>
+      </div>
+      <div class="acoes">
+        <div class="segmentos" id="abas-decisores" role="group" aria-label="Decisor"></div>
+        <button type="button" class="botao claro pequeno" id="mais-decisor">+ decisor</button>
+      </div>
+    </div>
+    <div class="linha-decisor">
+      <label class="campo-rotulado">Nome do decisor <input type="text" class="campo" id="nome-decisor"></label>
+      <button type="button" class="botao claro pequeno" id="tirar-decisor">Remover este decisor</button>
+    </div>
+    <div class="rolagem"><table class="tabela-notas" id="tabela-notas"></table></div>
+    <div class="linha-botoes">
+      <button type="button" class="botao claro pequeno" id="mais-alternativa">+ opção</button>
+    </div>
+    <p class="nota" id="nota-decisores"></p>
+  </section>
+
+  <section class="cartao bloco tabela-cartao" aria-labelledby="titulo-resultado" aria-live="polite">
+    <div class="cartao-cabeca">
+      <div>
+        <h2 id="titulo-resultado">3. Resultado</h2>
+        <p class="texto">Em ordem, da maior classe para a menor.</p>
+      </div>
+      <button type="button" class="botao claro pequeno" id="baixar-resultado">Baixar em CSV</button>
+    </div>
+    <div class="legenda" id="legenda-classes"></div>
+    <div class="rolagem"><table id="tabela-resultado"></table></div>
+    <div class="rodape-cartao">
+      <span>δ vai de −1 a +1. Positivo: a opção passa da fronteira. Negativo: fica abaixo. Perto de 0: está no limite.</span>
+    </div>
+  </section>
+
+  <section class="grade-2 bloco">
+    <div class="cartao criterio">
+      <h2>Como a conta é feita</h2>
+      <h3>1. Peso de cada critério (ROC)</h3>
+      <p id="texto-pesos"></p>
+      <h3>2. Mesma régua para tudo</h3>
+      <p>Todas as notas e fronteiras vão para uma régua de 0 a 1 (a menor nota digitada vira 0, a maior vira 1).</p>
+      <h3>3. Chance de passar da fronteira</h3>
+      <p>Como nenhuma nota é exata, cada uma é tratada como incerta (a "incerteza" de cada critério, na régua de 0 a 1).
+        Daí sai a probabilidade de a opção passar de cada fronteira, critério por critério, somada com os pesos.</p>
+      <h3>4. Opinião do grupo</h3>
+      <p>Faz-se a média entre os decisores (todos com o mesmo peso). As fronteiras usadas são a média das fronteiras de cada um.
+        O índice δ = 2 × probabilidade − 1.</p>
+      <h3>5. Classe</h3>
+      <p>A opção cai na classe acima da última fronteira que ela passa (δ ≥ 0). Se algum δ fica entre −ε e +ε, o resultado mostra
+        as duas classes daquela fronteira.</p>
+    </div>
+    <div class="cartao">
+      <h2>Crédito</h2>
+      <p class="texto">Método CPP-ROC-SORT e software original em Python de <strong>Roger</strong>, com manual, documento técnico
+        e exemplos: <a href="https://github.com/Rogerleite1305/CPP-ROC-SORT" target="_blank" rel="noopener">github.com/Rogerleite1305/CPP-ROC-SORT</a>.</p>
+      <p class="texto" style="margin-top:.75rem">Aqui a mesma conta foi reescrita para funcionar dentro do site, sem precisar instalar nada.
+        Ela foi conferida com o programa original em 300 casos sorteados e deu o mesmo resultado em todos.</p>
+    </div>
+  </section>
+
+</main>
+
+<script src="dados.js"></script>
+<script src="comum.js"></script>
+<script src="cpp-roc-sort.js"></script>
+<script src="decisao.js"></script>
+</body>
+</html>
