@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual do CPP-ROC-SORT · Observatório de Chuva de Maceió</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="Manual simples do método CPP-ROC-SORT: para que serve, como pensa, como usar no site e como ler o resultado.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body data-pagina="manual">
+
+<main class="largura manual">
+
+  <section class="cabecalho cartao-cabeca" style="margin-bottom:0">
+    <div>
+      <span class="etiqueta">Apoio à decisão · Manual</span>
+      <h1>Como funciona o CPP-ROC-SORT</h1>
+      <p class="subtitulo">Um guia curto, sem fórmulas, para quem vai usar a ferramenta de classificação do site.
+        Leva uns 5 minutos.</p>
+    </div>
+    <div class="acoes nao-imprimir" style="align-self:flex-end">
+      <a class="botao claro" href="decisao.html">← Voltar para a ferramenta</a>
+      <button type="button" class="botao claro" id="imprimir">Imprimir / salvar em PDF</button>
+    </div>
+  </section>
+
+  <nav class="cartao bloco indice nao-imprimir" aria-label="Neste manual">
+    <p class="rotulo">Neste manual</p>
+    <ol>
+      <li><a href="#para-que">Para que serve</a></li>
+      <li><a href="#palavras">As palavras da tela</a></li>
+      <li><a href="#como-pensa">Como o método pensa</a></li>
+      <li><a href="#delta">A régua do δ</a></li>
+      <li><a href="#exemplo">Exemplo com bairros</a></li>
+      <li><a href="#usar">Usando no site</a></li>
+      <li><a href="#ler">Lendo o resultado</a></li>
+      <li><a href="#duvidas">Cuidados e dúvidas</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <section class="grade-2 bloco" id="para-que">
+    <div class="cartao">
+      <span class="numero-secao">1</span>
+      <h2>Para que serve</h2>
+      <p class="texto">O CPP-ROC-SORT <strong>separa opções em grupos</strong> (por exemplo: prioridade Baixa, Média e Alta)
+        a partir das notas que uma ou mais pessoas dão a elas. Ele não monta só um ranking: diz <strong>em que grupo cada opção
+        cai</strong> — e avisa quando ela está <strong>em cima do muro</strong>, entre dois grupos.</p>
+      <div class="comparacao" style="margin-top:1rem">
+        <strong>Exemplo do dia a dia.</strong> A prefeitura precisa decidir quais bairros recebem obras de drenagem primeiro.
+        Três técnicos dão notas de 1 a 5 a cada bairro (alagamentos, pessoas atingidas, encostas). O método junta as notas e
+        responde: "Bairro A → prioridade Alta", "Bairro D → entre Média e Alta, vale conversar".
+      </div>
+    </div>
+    <div class="cartao criterio">
+      <h2>De onde vem o nome</h2>
+      <h3>CPP — chance</h3>
+      <p>Transforma as notas na <strong>chance</strong> de a opção passar de cada linha divisória entre grupos.</p>
+      <h3>ROC — peso</h3>
+      <p>Transforma a <strong>ordem de importância</strong> dos critérios em pesos. Ninguém precisa inventar "esse vale 37%".</p>
+      <h3>SORT — grupo</h3>
+      <p><strong>Coloca</strong> cada opção num grupo, do menor para o maior.</p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="cartao bloco tabela-cartao" id="palavras" aria-labelledby="titulo-palavras">
+    <div class="cartao-cabeca">
+      <div>
+        <span class="numero-secao">2</span>
+        <h2 id="titulo-palavras">As palavras que aparecem na tela</h2>
+        <p class="texto">Sete palavras bastam para usar a ferramenta.</p>
+      </div>
+    </div>
+    <div class="rolagem">
+      <table class="tabela-texto">
+        <thead><tr><th>Palavra</th><th>O que é</th><th>Exemplo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Opção</strong></td><td>Cada coisa que vai ser classificada.</td><td>Bairro A, Bairro B, estação Farol</td></tr>
+          <tr><td><strong>Critério</strong></td><td>Cada aspecto que se avalia, em ordem do mais para o menos importante.</td><td>Alagamentos, pessoas atingidas, encostas</td></tr>
+          <tr><td><strong>Classe</strong></td><td>Os grupos de destino, sempre do <strong>menor para o maior</strong>.</td>
+            <td><span class="chip-classe f1">Baixa</span> <span class="chip-classe f3">Média</span> <span class="chip-classe f5">Alta</span></td></tr>
+          <tr><td><strong>Decisor</strong></td><td>Cada pessoa que dá notas. Pode ser uma só.</td><td>Técnico 1, técnico 2, técnico 3</td></tr>
+          <tr><td><strong>Nota</strong></td><td>De 1 a 5. <strong>Nota maior = mais</strong> daquilo que o critério mede.</td><td>1 muito pouco · 3 moderado · 5 muito</td></tr>
+          <tr><td><strong>Fronteira</strong></td><td>A linha divisória entre duas classes vizinhas. Com 3 classes há 2 fronteiras.</td><td>Entre Baixa e Média: nota 2,3</td></tr>
+          <tr><td><strong>Limite ε</strong> (épsilon)</td><td>A margem de "em cima do muro". Se a opção fica tão perto de uma fronteira, o resultado mostra as duas classes.</td><td>0,10 (recomendado)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="bloco" id="como-pensa" aria-labelledby="titulo-pensa">
+    <div class="cartao-cabeca" style="margin-bottom:.75rem">
+      <div>
+        <span class="numero-secao">3</span>
+        <h2 id="titulo-pensa">Como o método pensa, em 4 passos</h2>
+        <p class="texto">Para cada opção e cada fronteira, ele faz uma pergunta só: <strong>"qual a chance de esta opção estar acima
+          desta linha?"</strong>. A opção sobe de classe enquanto a resposta for "mais provável que sim".</p>
+      </div>
+    </div>
+    <div class="fluxo">
+      <div class="cartao passo">
+        <span class="bolha">1</span>
+        <h3>A ordem vira peso</h3>
+        <p>Você só diz qual critério importa mais. O método reparte o peso: o 1º fica com a maior parte.</p>
+        <table class="mini">
+          <thead><tr><th>Critérios</th><th>1º</th><th>2º</th><th>3º</th></tr></thead>
+          <tbody><tr><td>2</td><td>75%</td><td>25%</td><td>—</td></tr><tr><td>3</td><td>61%</td><td>28%</td><td>11%</td></tr></tbody>
+        </table>
+      </div>
+      <div class="cartao passo">
+        <span class="bolha">2</span>
+        <h3>Nota contra fronteira</h3>
+        <p>Nenhuma nota é exata. Por isso, em vez de "passou / não passou", o método calcula a <strong>chance</strong> de passar:
+          nota em cima da fronteira = 50%; bem acima, perto de 100%; bem abaixo, perto de 0%.</p>
+      </div>
+      <div class="cartao passo">
+        <span class="bolha">3</span>
+        <h3>Junta tudo</h3>
+        <p>Soma as chances de cada critério usando os pesos e depois tira a <strong>média entre os decisores</strong>
+          (todos valem igual). Sai uma chance só, do grupo.</p>
+      </div>
+      <div class="cartao passo">
+        <span class="bolha">4</span>
+        <h3>Vira o δ e a classe</h3>
+        <p>A chance vira o índice <strong>δ</strong>, de −1 a +1. A opção fica na classe acima da última fronteira em que o δ é
+          positivo. Se algum δ cair perto de zero (dentro de ±ε), aparecem as duas classes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="cartao bloco" id="delta" aria-labelledby="titulo-delta">
+    <div class="cartao-cabeca">
+      <div>
+        <span class="numero-secao">4</span>
+        <h2 id="titulo-delta">A régua do δ (delta)</h2>
+        <p class="texto">O δ diz o quanto o grupo tem certeza de que a opção passa de uma fronteira.
+          δ = 2 × chance − 1: chance de 50% dá δ = 0; chance de 100% dá δ = +1.</p>
+      </div>
+    </div>
+    <div class="grafico">
+      <svg viewBox="0 0 640 128" width="100%" role="img" aria-label="Régua do delta, de menos 1 a mais 1, com a faixa de indiferença em volta do zero">
+        <rect x="20" y="40" width="600" height="18" rx="9" style="fill: var(--superficie-2)"/>
+        <rect x="20" y="40" width="270" height="18" rx="9" style="fill: var(--critico-suave)"/>
+        <rect x="350" y="40" width="270" height="18" rx="9" style="fill: var(--bom-suave)"/>
+        <rect x="290" y="34" width="60" height="30" rx="6" style="fill: var(--atencao-suave); stroke: var(--atencao); stroke-width: 1.5; stroke-dasharray: 4 3"/>
+        <line x1="320" y1="28" x2="320" y2="70" style="stroke: var(--tinta-2); stroke-width: 1.5"/>
+        <text x="20" y="84" class="eixo-forte">−1</text>
+        <text x="320" y="84" text-anchor="middle" class="eixo-forte">0</text>
+        <text x="620" y="84" text-anchor="end" class="eixo-forte">+1</text>
+        <text x="290" y="24" text-anchor="middle" class="eixo-texto">−ε</text>
+        <text x="350" y="24" text-anchor="middle" class="eixo-texto">+ε</text>
+        <text x="20" y="108" class="eixo-texto" style="fill: var(--critico)">não passa da fronteira (com certeza)</text>
+        <text x="320" y="108" text-anchor="middle" class="eixo-texto" style="fill: var(--atencao)">em cima do muro</text>
+        <text x="620" y="108" text-anchor="end" class="eixo-texto" style="fill: var(--bom)">passa da fronteira (com certeza)</text>
+      </svg>
+    </div>
+    <div class="colunas" style="margin-top:1rem">
+      <div class="comparacao"><strong>ε = 0,05 · rigoroso.</strong> Quase sempre dá uma classe só.</div>
+      <div class="comparacao"><strong>ε = 0,10 · equilibrado.</strong> O valor recomendado pelo método — é o que o site usa.</div>
+      <div class="comparacao"><strong>ε = 0,20 ou mais · conservador.</strong> Mostra muitas opções "em cima do muro".</div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="bloco" id="exemplo" aria-labelledby="titulo-exemplo">
+    <div class="cartao-cabeca" style="margin-bottom:.75rem">
+      <div>
+        <span class="numero-secao">5</span>
+        <h2 id="titulo-exemplo">Exemplo completo: prioridade de obras em 4 bairros</h2>
+        <p class="texto">Bairros fictícios. 3 técnicos, 3 critérios em ordem de importância (alagamentos → pessoas atingidas →
+          encostas), 3 classes, fronteiras nas notas 2,3 e 3,7, incerteza 0,1 e ε = 0,10. Os números abaixo saíram da própria
+          ferramenta do site.</p>
+      </div>
+    </div>
+    <div class="grade-2">
+      <div class="cartao tabela-cartao">
+        <div class="cartao-cabeca"><h3 style="margin:0">Notas de cada técnico <span class="sec">(alagamentos · pessoas · encostas)</span></h3></div>
+        <div class="rolagem">
+          <table>
+            <thead><tr><th>Bairro</th><th class="num">Técnico 1</th><th class="num">Técnico 2</th><th class="num">Técnico 3</th></tr></thead>
+            <tbody>
+              <tr><td><strong>A</strong></td><td class="num">5 · 4 · 4</td><td class="num">4 · 5 · 3</td><td class="num">5 · 4 · 4</td></tr>
+              <tr><td><strong>B</strong></td><td class="num">3 · 3 · 2</td><td class="num">3 · 4 · 3</td><td class="num">4 · 3 · 3</td></tr>
+              <tr><td><strong>C</strong></td><td class="num">2 · 1 · 2</td><td class="num">1 · 2 · 2</td><td class="num">2 · 2 · 1</td></tr>
+              <tr><td><strong>D</strong></td><td class="num">4 · 3 · 3</td><td class="num">4 · 4 · 3</td><td class="num">3 · 4 · 4</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="cartao tabela-cartao">
+        <div class="cartao-cabeca"><h3 style="margin:0">Resultado</h3></div>
+        <div class="rolagem">
+          <table>
+            <thead><tr><th>Bairro</th><th class="num">δ Baixa|Média</th><th class="num">δ Média|Alta</th><th>Classe</th></tr></thead>
+            <tbody>
+              <tr><td><strong>A</strong></td><td class="num">+0,99</td><td class="num">+0,65</td><td><span class="chip-classe f5">Alta</span></td></tr>
+              <tr><td><strong>B</strong></td><td class="num">+0,80</td><td class="num">−0,44</td><td><span class="chip-classe f3">Média</span></td></tr>
+              <tr><td><strong>C</strong></td><td class="num">−0,60</td><td class="num">−1,00</td><td><span class="chip-classe f1">Baixa</span></td></tr>
+              <tr><td><strong>D</strong></td><td class="num">+0,92</td><td class="num no-limite">−0,04</td><td class="entre">
+                <span class="chip-classe f3">Média</span> <span class="chip-classe f5">Alta</span><div class="sec">em cima do muro</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="cartao criterio" style="margin-top:1.25rem">
+      <h3 style="margin-top:0">Como ler</h3>
+      <p><strong>B</strong> passa com folga da 1ª fronteira (+0,80) e fica claramente abaixo da 2ª (−0,44): é Média, sem dúvida.
+        <strong>D</strong> também passa da 1ª, mas na 2ª o δ é −0,04 — dentro da margem de ±0,10. O grupo está dividido entre
+        Média e Alta, e a ferramenta mostra as duas em vez de forçar uma. É o sinal para os técnicos conversarem sobre o bairro D.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="grade-2 bloco" id="usar">
+    <div class="cartao">
+      <span class="numero-secao">6</span>
+      <h2>Usando a ferramenta no site</h2>
+      <p class="texto">Não precisa instalar nada: abra <a href="decisao.html">Apoio à decisão</a>. Tudo fica guardado no seu navegador
+        enquanto você mexe.</p>
+      <ol class="passos" style="margin-top:.9rem">
+        <li><strong>Classes</strong> — escreva os grupos do <strong>menor para o maior</strong>. Use "+ classe" para criar mais.</li>
+        <li><strong>Critérios</strong> — do mais importante para o menos importante. As setas mudam a ordem (e o peso).
+          Ao lado de cada um fica a <strong>incerteza</strong>: 0,1 está bom para começar.</li>
+        <li><strong>Limite ε</strong> — deixe 0,10.</li>
+        <li><strong>Notas</strong> — cada decisor tem uma aba. Clique na aba e dê notas de 1 a 5 a cada opção. As <strong>linhas
+          cinza</strong> no fim da tabela são as fronteiras entre as classes; cada decisor pode ajustar as suas.</li>
+        <li><strong>Resultado</strong> — aparece na hora, embaixo, da maior classe para a menor. Os δ em amarelo estão dentro
+          da margem ε. O botão "Baixar em CSV" guarda a tabela.</li>
+      </ol>
+      <div class="alerta"><strong>Dica:</strong> monte primeiro classes, critérios e decisores, e só depois digite as notas.</div>
+    </div>
+    <div class="cartao criterio" id="ler">
+      <span class="numero-secao">7</span>
+      <h2>Lendo o resultado</h2>
+      <h3><span class="chip-classe f5">Alta</span> — uma classe só</h3>
+      <p>O grupo concorda. Dá para decidir com segurança.</p>
+      <h3><span class="chip-classe f3">Média</span> <span class="chip-classe f5">Alta</span> — duas classes</h3>
+      <p>A opção está na fronteira. Revejam as notas, conversem entre os decisores ou testem outro ε.</p>
+      <h3>Várias faixas para quase todas as opções</h3>
+      <p>Em geral o ε está alto demais. Volte para 0,10.</p>
+      <h3>Teste de segurança (recomendado)</h3>
+      <p>Antes de fechar a decisão, rode com ε = 0,05, depois 0,10 e 0,15. Opção que <strong>não muda de classe</strong> nos três
+        tem resultado robusto; a que muda merece mais conversa.</p>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="grade-2 bloco" id="duvidas">
+    <div class="cartao criterio">
+      <span class="numero-secao">8</span>
+      <h2>Cuidados e perguntas frequentes</h2>
+      <h3>E quando "menos é melhor"?</h3>
+      <p>Nota maior sempre significa "mais". Se o critério for do tipo "quanto menor, melhor" (custo, por exemplo), inverta na hora
+        de dar a nota: custo muito baixo recebe 5.</p>
+      <h3>Todas as opções caíram na mesma classe.</h3>
+      <p>Se todos deram notas parecidas, não há diferença para o método encontrar. Confira também as fronteiras.</p>
+      <h3>Posso usar nota com vírgula, como 3,5?</h3>
+      <p>Pode, mas o método foi pensado para notas inteiras de 1 a 5.</p>
+      <h3>Posso ter um decisor só?</h3>
+      <p>Sim. O mínimo é 1.</p>
+      <h3>O resultado é um alerta de chuva?</h3>
+      <p>Não. O exemplo de chuva na ferramenta usa fronteiras e incerteza de exemplo, que o grupo ainda vai definir.</p>
+    </div>
+    <div class="cartao">
+      <h2>Crédito</h2>
+      <p class="texto">O método CPP-ROC-SORT e o software original em Python são de <strong>Rogério Leite</strong>.</p>
+      <p class="texto" style="margin-top:.6rem">Este guia foi escrito com base no <strong>Manual Explicativo do CPP-ROC-SORT</strong>
+        de Rogério Leite (16/10/2026), resumido e adaptado à ferramenta do site.</p>
+      <div class="baixar" style="margin-top:1rem">
+        <a href="https://github.com/Rogerleite1305/CPP-ROC-SORT" target="_blank" rel="noopener">Software original <span>GitHub</span></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="dados.js"></script>
+<script src="comum.js"></script>
+<script>document.getElementById("imprimir").addEventListener("click", () => print());</script>
+</body>
+</html>

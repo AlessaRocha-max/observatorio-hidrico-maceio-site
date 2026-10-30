@@ -28,6 +28,14 @@
   };
   for (const s of [selDe, selAte, selSerie]) s.addEventListener("change", mudou);
 
+  /** Ano completo mais chuvoso dentro dos anos escolhidos (null se houver menos de 2 anos completos). */
+  function anoMaisChuvoso() {
+    const fechados = anosAtuais().map((a) => ({ a, ...O.anoSerie(estado.serie, a) }))
+      .filter((r) => r.total != null && !r.andamento && !r.aviso);
+    if (fechados.length < 2) return null;
+    return fechados.reduce((x, y) => (y.total > x.total ? y : x)).a;
+  }
+
   const serieAtual = () => O.SERIES.find((s) => s.id === estado.serie);
   const anosAtuais = () => O.anos.filter((a) => a >= estado.de && a <= estado.ate);
   const mesesAtuais = () => anosAtuais().flatMap(O.mesesDoAno);
@@ -79,6 +87,13 @@
     }
     el("text", { x: m.l - 6, y: m.t - 14, "text-anchor": "end", class: "eixo-texto" }, svg).textContent = "mm";
 
+    const topoAno = anoMaisChuvoso();
+    if (topoAno) {
+      const k = anosV.indexOf(topoAno);
+      el("rect", { x: xDe(k * 12) - 2, y: m.t - 4, width: banda * 12 + 4, height: ih + 4, rx: 6,
+        style: "fill: var(--mais-chuvoso-suave)" }, svg);
+    }
+
     const pico = meses.reduce((a, b) => ((b.v ?? -1) > (a.v ?? -1) ? b : a));
     const larg = Math.max(1.5, banda - Math.min(3, banda * 0.25));
     meses.forEach((x, i) => {
@@ -110,7 +125,8 @@
     anosV.forEach((a, k) => {
       const cx = xDe(k * 12) + banda * 6;
       const r = O.anoSerie(estado.serie, a);
-      el("text", { x: cx, y: H - 26, "text-anchor": "middle", class: "eixo-forte" }, svg).textContent = a;
+      el("text", { x: cx, y: H - 26, "text-anchor": "middle", class: "eixo-forte",
+        style: a === topoAno ? "fill: var(--mais-chuvoso)" : null }, svg).textContent = a === topoAno ? `★ ${a}` : a;
       if (banda * 12 < 46) return;  // pouco espaço: só o ano
       const nota = r.andamento ? `até ${MESES[+D.ultimo_mes.slice(5) - 1]}`
         : r.faltam.length ? `${r.faltam.length === 1 ? "falta 1 mês" : `faltam ${r.faltam.length} meses`}` : "completo";
@@ -125,6 +141,7 @@
     if (estado.serie === "COMBINADA") itens.push(["", "var(--serie-inmet)", "INMET A303"], ["", "var(--serie-cemaden)", "mediana CEMADEN (INMET falhou)"]);
     else itens.push(["", corFonte(estado.serie === "A303" ? "INMET" : "CEMADEN"), s.curto]);
     itens.push(["hachura", "transparent", "sem total"]);
+    if (anoMaisChuvoso()) itens.push(["", "var(--mais-chuvoso)", `★ ano mais chuvoso (${anoMaisChuvoso()})`]);
     O.legenda("legenda-mensal", itens);
     $("texto-mensal").textContent = "Total de chuva de cada mês. Mês sem total aparece hachurado — preferimos deixar o buraco a mostrar um número errado.";
   }
@@ -170,32 +187,158 @@
   }
 
   // ------------------------------------------------------------------ mapa de calor
-  const FAIXAS = [[50, 1, "até 50"], [150, 2, "50–150"], [250, 3, "150–250"], [350, 4, "250–350"], [Infinity, 5, "mais de 350 mm"]];
-  const faixa = (v) => FAIXAS.find(([lim]) => v < lim)[1];
+  // faixas de chuva no mês (limite superior, nome); a cor vai do azul mais fraco ao mais forte
+  const FAIXAS = O.FAIXAS_MES;
+  const faixa = (v) => FAIXAS.findIndex(([lim]) => v < lim) + 1;
   function calor() {
     const grade = $("calor");
-    const filhos = [h("div", { class: "cab", text: "" }), ...MESES.map((m) => h("div", { class: "cab", text: m }))];
-    for (const a of anosAtuais()) {
-      filhos.push(h("div", { class: "ano", text: a }));
-      for (const p of O.mesesDoAno(a)) {
-        if (p > D.ultimo_mes || p < D.primeiro_mes) { filhos.push(h("div", { class: "cel futuro", text: "" })); continue; }
+    const topoAno = anoMaisChuvoso();
+    const anosV = anosAtuais();
+    // cabeçalho: meses + total do ano; destacados quando o mouse passa num quadrado
+    const cabs = MESES.map((m) => h("div", { class: "cab", text: m }));
+    const filhos = [h("div", { class: "cab" }), ...cabs, h("div", { class: "cab tot", text: "Total do ano" })];
+    const acender = (rotuloAno, k, liga) => { rotuloAno.classList.toggle("ativo", liga); cabs[k].classList.toggle("ativo", liga); };
+
+    for (const a of anosV) {
+      const rotuloAno = h("div", { class: `ano${a === topoAno ? " mais-chuvoso" : ""}`, text: a,
+        title: a === topoAno ? "Ano mais chuvoso do período escolhido" : null });
+      filhos.push(rotuloAno);
+      O.mesesDoAno(a).forEach((p, k) => {
+        if (p > D.ultimo_mes || p < D.primeiro_mes) { filhos.push(h("div", { class: "cel futuro", title: "Ainda sem dado (mês futuro)" })); return; }
         const x = O.valorSerie(estado.serie, p);
         const c = x.v == null
           ? h("div", { class: "cel sem", tabindex: 0, text: "—", "aria-label": `${nomeMes(p)}: sem total` })
-          : h("div", { class: `cel f${faixa(x.v)}${estado.serie === "COMBINADA" && x.fonte === "CEMADEN" ? " cemaden" : ""}`,
-            tabindex: 0, text: fmt(x.v), "aria-label": `${nomeMes(p)}: ${fmt(x.v)} mm` });
+          : h("div", { class: `cel f${faixa(x.v)}`, tabindex: 0, text: fmt(x.v), "aria-label": `${nomeMes(p)}: ${fmt(x.v)} mm` });
+        c.setAttribute("role", "button");
+        if (p === estado.mes) c.classList.add("escolhida");
+        const escolher = () => {
+          estado.mes = p;
+          for (const z of grade.querySelectorAll(".escolhida")) z.classList.remove("escolhida");
+          c.classList.add("escolhida");
+          painelMes();
+        };
+        c.addEventListener("click", escolher);
+        c.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); escolher(); } });
+        for (const [ev, liga] of [["pointerenter", true], ["focus", true], ["pointerleave", false], ["blur", false]])
+          c.addEventListener(ev, () => acender(rotuloAno, k, liga));
         O.comDica(c, () => x.v != null
-          ? [O.nomeMesLongo(p), [{ valor: `${fmt(x.v, 1)} mm`, nome: descreverFonte(x) }]]
+          ? [O.nomeMesLongo(p), [{ valor: `${fmt(x.v, 1)} mm`, nome: descreverFonte(x) }],
+            `Faixa: ${FAIXAS[faixa(x.v) - 1][1].toLowerCase()}. Clique para comparar com o mesmo mês dos outros anos.`]
           : [O.nomeMesLongo(p), [{ valor: "sem total", nome: "" }],
             x.bruto ? `${O.STATUS[x.bruto[3]].nome}` + (x.bruto[2] != null ? ` — ${fmt(x.bruto[2])}% dos dias medidos.` : ".") : "Sem dado neste mês."]);
         filhos.push(c);
-      }
+      });
+      // total do ano
+      const r = O.anoSerie(estado.serie, a);
+      const tot = r.total != null
+        ? h("div", { class: `tot${a === topoAno ? " mais-chuvoso" : ""}` }, [h("strong", { text: fmt(r.total) }), h("small", { text: r.andamento ? "até agora" : "mm" })])
+        : h("div", { class: "tot vazio" }, [h("strong", { text: "—" }),
+          h("small", { text: r.andamento ? "em andamento" : r.aviso ? "mês suspeito" : `falta${r.faltam.length > 1 ? "m" : ""} ${r.faltam.length}` })]);
+      filhos.push(tot);
     }
+
+    // última linha: média de cada mês nos anos mostrados
+    filhos.push(h("div", { class: "ano media", text: "Média" }));
+    for (let k = 1; k <= 12; k++) {
+      const vals = anosV.map((a) => O.valorSerie(estado.serie, O.anoMes(a, k)).v).filter((v) => v != null);
+      const med = vals.length ? vals.reduce((t, v) => t + v, 0) / vals.length : null;
+      filhos.push(h("div", { class: "media", text: med != null ? fmt(med) : "—",
+        title: med != null ? `${MESES_LONGOS[k - 1]}: média de ${vals.length} ${vals.length > 1 ? "anos" : "ano"}` : "sem dado" }));
+    }
+    filhos.push(h("div", { class: "media tot-vazio" }));
     grade.replaceChildren(...filhos);
-    const itens = FAIXAS.map(([, n, t]) => ["", `var(--seq-${n})`, t]);
-    itens.push(["hachura", "transparent", "sem total"]);
-    if (estado.serie === "COMBINADA") itens.push(["cheia", "var(--serie-cemaden)", "veio do CEMADEN"]);
-    O.legenda("legenda-calor", itens);
+
+    // legenda: uma régua só, do mais seco ao mais chuvoso
+    $("legenda-calor").replaceChildren(h("div", { class: "escala-calor", "aria-label": "Faixas de chuva no mês" },
+      FAIXAS.map(([, nome, txt], i) => h("div", {}, [h("span", { class: `bloco f${i + 1}` }), h("strong", { text: nome }), h("small", { text: `${txt} mm` })]))),
+      h("div", { class: "legenda" }, [
+        h("span", {}, [h("span", { class: "chave hachura" }), "sem total (faltou medir)"]),
+        h("span", {}, [h("span", { class: "chave vazio-futuro" }), "ainda não aconteceu"]),
+        topoAno ? h("span", { style: "color: var(--mais-chuvoso); font-weight: 600", text: `★ ano mais chuvoso (${topoAno})` }) : null,
+      ].filter(Boolean)));
+    $("nota-calor").textContent = (estado.serie === "COMBINADA"
+      ? "Série combinada: passe o mouse num quadrado para ver se o valor veio do INMET ou da mediana do CEMADEN. " : "") +
+      "\"Sem total\": faltaram mais de 10% dos dias, ou o mês é suspeito. A média de cada mês usa só os anos com total.";
+  }
+
+  // ------------------------------------------------------------------ o mês clicado, em todos os anos
+  estado.mes = [...O.todosMeses].reverse().find((p) => O.valorSerie(estado.serie, p).v != null) || D.ultimo_mes;
+  const caixaMes = $("grafico-mes");
+  function painelMes() {
+    const p = estado.mes, mm = +p.slice(5, 7), anoClicado = +p.slice(0, 4);
+    const nomeM = MESES_LONGOS[mm - 1], NomeM = nomeM[0].toUpperCase() + nomeM.slice(1);
+    const pontos = O.anos.map((a) => ({ a, p: O.anoMes(a, mm) }))
+      .filter((x) => x.p >= D.primeiro_mes && x.p <= D.ultimo_mes)
+      .map((x) => ({ ...x, ...O.valorSerie(estado.serie, x.p) }));
+    const comValor = pontos.filter((x) => x.v != null);
+    const media = comValor.length ? comValor.reduce((t, x) => t + x.v, 0) / comValor.length : null;
+    const atual = pontos.find((x) => x.a === anoClicado);
+
+    $("titulo-mes").textContent = `${NomeM} em todos os anos`;
+    let texto = `Chuva de ${nomeM} em cada ano (${serieAtual().curto}). O ano clicado aparece em destaque.`;
+    if (atual?.v != null && media && comValor.length > 1) {
+      const dif = (atual.v / media - 1) * 100;
+      texto = `Em ${nomeM} de ${anoClicado} choveu ${fmt(atual.v)} mm — ` +
+        (Math.abs(dif) < 5 ? "perto da" : `${fmt(Math.abs(dif))}% ${dif > 0 ? "acima" : "abaixo"} da`) +
+        ` média de ${nomeM} (${fmt(media)} mm, ${comValor.length} anos com total).`;
+    } else if (atual) texto = `${NomeM} de ${anoClicado} não tem total válido nesta série. ` + texto;
+    $("texto-mes").textContent = texto;
+
+    // barras: um ano por barra
+    const W = Math.max(300, caixaMes.clientWidth), H = 240;
+    const m = { t: 24, r: 8, b: 26, l: 40 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const banda = iw / Math.max(1, pontos.length), larg = Math.min(46, banda * 0.62);
+    const maxV = Math.max(100, ...comValor.map((x) => x.v));
+    const { topo, ticks } = O.escalaBonita(maxV, maxV > 400 ? 100 : 50);
+    const y = (v) => m.t + ih - (v / topo) * ih;
+    const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${NomeM} em cada ano` });
+    const defs = el("defs", {}, svg);
+    const pad = el("pattern", { id: "hachura-mes", width: 5, height: 5, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+    el("rect", { width: 5, height: 5, style: "fill: var(--superficie)" }, pad);
+    el("line", { x1: 0, y1: 0, x2: 0, y2: 5, style: "stroke: var(--eixo); stroke-width: 2" }, pad);
+    for (const t of ticks) {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), class: t ? "linha-grade" : "linha-base" }, svg);
+      el("text", { x: m.l - 6, y: y(t) + 4, "text-anchor": "end", class: "eixo-texto" }, svg).textContent = fmt(t);
+    }
+    el("text", { x: m.l - 6, y: m.t - 12, "text-anchor": "end", class: "eixo-texto" }, svg).textContent = "mm";
+    pontos.forEach((x, i) => {
+      const cx = m.l + banda * i + banda / 2, x0 = cx - larg / 2, eAtual = x.a === anoClicado;
+      if (x.v == null) {
+        el("rect", { x: x0, y: m.t, width: larg, height: ih, fill: "url(#hachura-mes)", opacity: .7 }, svg);
+      } else {
+        const y1 = y(x.v), y0 = m.t + ih, r = Math.min(4, larg / 2, (y0 - y1) / 2);
+        el("path", { d: `M${x0},${y0} V${y1 + r} Q${x0},${y1} ${x0 + r},${y1} H${x0 + larg - r} Q${x0 + larg},${y1} ${x0 + larg},${y1 + r} V${y0} Z`,
+          style: `fill: ${eAtual ? "var(--primaria)" : "var(--seq-2)"}` }, svg);
+        el("text", { x: cx, y: y1 - 6, "text-anchor": "middle", class: eAtual ? "rotulo-dado" : "eixo-texto" }, svg).textContent = fmt(x.v);
+      }
+      el("text", { x: cx, y: H - 8, "text-anchor": "middle", class: eAtual ? "eixo-forte" : "eixo-texto" }, svg).textContent = x.a;
+      const alvo = el("rect", { x: m.l + banda * i, y: m.t, width: banda, height: ih, class: "alvo", tabindex: 0,
+        "aria-label": `${nomeM} de ${x.a}: ${x.v != null ? fmt(x.v) + " mm" : "sem total"}` }, svg);
+      O.comDica(alvo, () => [`${NomeM} de ${x.a}`, [{ valor: x.v != null ? `${fmt(x.v, 1)} mm` : "sem total", nome: x.v != null ? descreverFonte(x) : "" }],
+        x.v != null && media ? `Média de ${nomeM}: ${fmt(media, 1)} mm.` : ""]);
+      alvo.addEventListener("click", () => { estado.mes = x.p; calor(); painelMes(); });
+    });
+    if (media) {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(media), y2: y(media), style: "stroke: var(--tinta-2); stroke-width: 1.5; stroke-dasharray: 5 4" }, svg);
+    }
+    caixaMes.replaceChildren(svg);
+    O.legenda("legenda-mes", [["", "var(--primaria)", `${anoClicado} (clicado)`], ["", "var(--seq-2)", "outros anos"],
+      ["linha", "var(--tinta-2)", media ? `média do mês (${fmt(media)} mm)` : "média do mês"], ["hachura", "transparent", "sem total"]]);
+
+    // cada estação no mês clicado
+    $("titulo-estacoes-mes").textContent = `Cada estação em ${nomeM} de ${anoClicado}`;
+    const linhas = O.medicao.map((e) => ({ e, b: D.mensal[e.id]?.[p] }))
+      .map((x) => ({ ...x, v: x.b && x.b[3] === "ok" ? x.b[0] : null }))
+      .sort((a, b) => (b.v ?? -1) - (a.v ?? -1));
+    const maxE = Math.max(1, ...linhas.map((x) => x.v ?? 0));
+    $("estacoes-mes").replaceChildren(...linhas.map((x) => {
+      const barra = h("i", {}, x.v != null ? h("b", { style: `width:${(x.v / maxE) * 100}%; background:${O.COR_REDE[x.e.rede]}` }) : null);
+      const valor = x.v != null ? h("span", { class: "num", text: `${fmt(x.v)} mm` })
+        : h("span", { class: "num sem", text: x.b ? (x.b[3] === "incompleto" ? "incompleto" : "suspeito") : "sem dado",
+          title: x.b ? O.STATUS[x.b[3]].nome : "A estação não mandou dado neste mês." });
+      return h("div", { class: "linha" }, [h("span", { text: x.e.nome, title: `${x.e.nome} (${x.e.rede})` }), barra, valor]);
+    }));
   }
 
   // ------------------------------------------------------------------ tabela anual
@@ -203,7 +346,7 @@
   function tabelaAnual() {
     const linhasAno = anosAtuais().map((a) => ({ a, ...O.anoSerie(estado.serie, a) }));
     const fechados = linhasAno.filter((r) => r.total != null && !r.andamento && !r.aviso);
-    const maisChuvoso = fechados.reduce((a, b) => (!a || b.total > a.total ? b : a), null);
+    const topoAno = anoMaisChuvoso();
     const cab = h("tr", {}, [h("th", { text: "Ano" }), h("th", { class: "num", text: "Chuva total" }), h("th", { text: "Cobertura" }),
       h("th", { text: "Situação" }), h("th", { text: "Origem" }), h("th", { text: "", "aria-label": "Baixar" })]);
     const linhas = linhasAno.map((r) => {
@@ -212,13 +355,14 @@
       else if (r.aviso) pil = h("span", { class: "pilula critico", text: "Contém mês suspeito" });
       else if (r.total == null) pil = h("span", { class: "pilula parcial",
         text: `Parcial (falta${r.faltam.length > 1 ? "m" : ""} ${r.faltam.length > 3 ? r.faltam.length + " meses" : r.faltam.map((p) => MESES[+p.slice(5) - 1]).join(", ")})` });
-      else pil = h("span", { class: "pilula ok", text: r === maisChuvoso && fechados.length > 1 ? "Completo · ano mais chuvoso" : "Completo" });
+      else if (r.a === topoAno) pil = h("span", { class: "pilula mais-chuvoso", text: "★ Ano mais chuvoso" });
+      else pil = h("span", { class: "pilula ok", text: "Completo" });
       const cor = r.cobertura >= 90 ? "var(--primaria)" : "var(--atencao)";
       const barra = h("span", { class: "barrinha" }, [h("i", {}, h("b", { style: `width:${Math.min(100, r.cobertura)}%; background:${cor}` })), `${fmt(r.cobertura, 1)}%`]);
       const totalTxt = r.total != null ? `${fmt(r.total, 1)} mm` : "—";
       const baixar = h("button", { type: "button", class: "icone-botao", title: `Baixar os meses de ${r.a} (CSV)`, "aria-label": `Baixar os meses de ${r.a}`, html: ICONE_BAIXAR });
       baixar.addEventListener("click", () => baixar_(r.a, r.a));
-      return h("tr", {}, [
+      return h("tr", { class: r.a === topoAno ? "linha-mais-chuvoso" : null }, [
         h("td", {}, h("strong", { text: r.a })),
         h("td", { class: "num" }, [h("strong", { text: totalTxt }),
           r.andamento && r.total != null ? h("div", { class: "sec", text: "até agora" }) : null]),
@@ -250,7 +394,8 @@
   $("baixar").addEventListener("click", () => baixar_(estado.de, estado.ate));
 
   // ------------------------------------------------------------------ tudo junto
-  function desenharTudo() { cabecalho(); legendaMensal(); desenharMensal(); recorde(); calor(); tabelaAnual(); }
+  function desenharTudo() { cabecalho(); legendaMensal(); desenharMensal(); recorde(); calor(); painelMes(); tabelaAnual(); }
   desenharTudo();
   O.aoRedimensionar(caixa, desenharMensal);
+  O.aoRedimensionar(caixaMes, painelMes);
 })();

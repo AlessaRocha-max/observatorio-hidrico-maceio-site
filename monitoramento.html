@@ -48,9 +48,14 @@
 
   <div class="grade-2 bloco">
     <section aria-labelledby="titulo-cartoes">
-      <div class="cartao-cabeca" style="margin-bottom:.75rem">
+      <div class="cartao-cabeca" style="margin-bottom:.5rem">
         <h2 id="titulo-cartoes">Estações</h2>
         <span class="nota" id="nota-cartoes" style="margin:0"></span>
+      </div>
+      <div class="cartao legenda-cartoes">
+        <p class="rotulo" style="margin:0 0 .4rem">Como ler os cartões</p>
+        <div class="legenda" id="legenda-cartoes"></div>
+        <p class="nota" id="nota-legenda" style="margin:.5rem 0 0"></p>
       </div>
       <div class="cartoes-estacao" id="cartoes"></div>
     </section>
@@ -71,8 +76,10 @@
     <div class="cartao-cabeca">
       <div>
         <h2 id="titulo-comparar">Comparar estações dia a dia</h2>
-        <p class="texto">Marque até 3 estações. A linha cinza tracejada é a chuva típica do dia (mediana das estações).</p>
+        <p class="texto">Marque quantas estações quiser — cada uma tem a sua cor. A linha cinza tracejada é a chuva típica do dia
+          (mediana das estações). Passe o mouse no gráfico para ver o valor de cada uma.</p>
       </div>
+      <div class="acoes" id="acoes-comparar"></div>
     </div>
     <div class="chips" id="escolha-comparar" style="margin:0 0 1rem"></div>
     <div class="legenda" id="legenda-comparar" style="margin-bottom:.5rem"></div>

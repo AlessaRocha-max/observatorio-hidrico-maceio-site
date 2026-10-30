@@ -31,6 +31,7 @@
         <li><strong>Notas</strong> — cada decisor dá uma nota de 1 a 5 para cada opção em cada critério, e diz onde fica a fronteira entre as classes.</li>
         <li><strong>Resultado</strong> — aparece na hora, embaixo. Mude qualquer número e veja o que acontece.</li>
       </ol>
+      <p class="nota" style="margin-top:.75rem">Dúvidas sobre o método? Veja o <a href="manual.html">manual do CPP-ROC-SORT</a>.</p>
     </div>
     <div class="cartao">
       <h2>Sobre o exemplo</h2>
@@ -129,12 +130,30 @@
       <p>A opção cai na classe acima da última fronteira que ela passa (δ ≥ 0). Se algum δ fica entre −ε e +ε, o resultado mostra
         as duas classes daquela fronteira.</p>
     </div>
+    <div style="display:flex;flex-direction:column;gap:1.25rem">
+    <div class="cartao" id="manual">
+      <h2>Manual do método</h2>
+      <p class="texto">Guia simples, em 5 minutos: para que serve, como o método pensa, um exemplo com bairros e como ler o resultado.
+        Baseado no manual de <strong>Rogério Leite</strong> (16/10/2026).</p>
+      <div class="baixar" style="margin-top:1rem">
+        <a href="manual.html">Abrir o manual <span>no site · dá para imprimir</span></a>
+      </div>
+      <h3 style="margin-top:1.1rem">Resumo do manual</h3>
+      <ul class="lista">
+        <li><strong>CPP</strong> transforma as notas em probabilidade de a opção passar de cada fronteira;
+          <strong>ROC</strong> transforma a ordem de importância dos critérios em pesos; <strong>SORT</strong> põe cada opção numa classe.</li>
+        <li>Pesos ROC: com 3 critérios, 0,611 · 0,278 · 0,111. Notas de 1 a 5 viram 0 a 1 (nota 3 = 0,50).</li>
+        <li>δ = 2A⁺ − 1: perto de +1, passa da fronteira com segurança; perto de 0, está no limite; perto de −1, não passa.</li>
+        <li>ε recomendado: <strong>0,10</strong>. Antes de decidir, teste 0,05, 0,10 e 0,15 — a opção que não muda de classe tem resultado robusto.</li>
+      </ul>
+    </div>
     <div class="cartao">
       <h2>Crédito</h2>
-      <p class="texto">Método CPP-ROC-SORT e software original em Python de <strong>Roger</strong>, com manual, documento técnico
+      <p class="texto">Método CPP-ROC-SORT e software original em Python de <strong>Rogério Leite</strong>, com manual, documento técnico
         e exemplos: <a href="https://github.com/Rogerleite1305/CPP-ROC-SORT" target="_blank" rel="noopener">github.com/Rogerleite1305/CPP-ROC-SORT</a>.</p>
       <p class="texto" style="margin-top:.75rem">Aqui a mesma conta foi reescrita para funcionar dentro do site, sem precisar instalar nada.
         Ela foi conferida com o programa original em 300 casos sorteados e deu o mesmo resultado em todos.</p>
+    </div>
     </div>
   </section>
 

@@ -60,14 +60,31 @@
     <div class="cartao-cabeca">
       <div>
         <h2 id="titulo-calor">Mapa de calor: chuva de cada mês</h2>
-        <p class="texto">Quanto mais escuro, mais choveu. Assim dá para ver de relance a estação chuvosa (abril a agosto)
-          e comparar o mesmo mês entre os anos.</p>
+        <p class="texto">Cada linha é um ano e cada quadrado, a chuva de um mês (em mm). <strong>Quanto mais forte o azul, mais choveu</strong> —
+          dá para ver de relance a estação chuvosa, de abril a agosto. <strong>Clique num quadrado</strong> para comparar aquele mês
+          em todos os anos.</p>
       </div>
-      <div class="legenda" id="legenda-calor"></div>
     </div>
+    <div id="legenda-calor" class="legenda-calor"></div>
     <div class="rolagem"><div class="calor" id="calor"></div></div>
+    <div class="painel-mes" aria-live="polite">
+      <div class="grade-mes">
+        <div>
+          <h3 id="titulo-mes"></h3>
+          <p class="texto" id="texto-mes" style="margin-bottom:.5rem"></p>
+          <div class="legenda" id="legenda-mes" style="margin-bottom:.4rem"></div>
+          <div class="grafico" id="grafico-mes"></div>
+        </div>
+        <div>
+          <h3 id="titulo-estacoes-mes"></h3>
+          <p class="texto" style="margin-bottom:.6rem">Total do mês em cada pluviômetro. Azul: INMET · laranja: CEMADEN.
+            Mês incompleto ou suspeito não ganha barra.</p>
+          <div class="barras-estacao" id="estacoes-mes"></div>
+        </div>
+      </div>
+    </div>
     <div class="rodape-cartao">
-      <span id="nota-calor">Hachurado: mês sem total válido (faltam mais de 10% dos dias, ou o mês é suspeito).</span>
+      <span id="nota-calor"></span>
     </div>
   </section>
 

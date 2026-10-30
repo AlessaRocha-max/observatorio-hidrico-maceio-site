@@ -28,6 +28,10 @@
   /* escala da chuva (um só azul, do claro ao escuro) */
   --seq-1: #e8f0fc; --seq-2: #b9d2f6; --seq-3: #78a9ec; --seq-4: #2f74d6; --seq-5: #0f2f66;
   --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a;
+  /* cores das estações no gráfico "Comparar estações" (uma por estação) */
+  --cat-4: #c43c7a; --cat-5: #7b52c7; --cat-6: #c99a00; --cat-7: #0e9aa7; --cat-8: #8d5a3b;
+  --cat-9: #e04848; --cat-10: #4f6d8f; --cat-11: #6f9a1f; --cat-12: #0b3d91; --cat-13: #e889b5; --cat-14: #4bb3e6;
+  --mais-chuvoso: #7b52c7; --mais-chuvoso-suave: #efe8fb;
   --seq-txt-claro: #0f1b2d; --seq-txt-meio: #0f1b2d; --seq-txt-escuro: #ffffff;
   --topo: #1e3a8a;
   --botao-forte: #1e3a8a;
@@ -50,6 +54,7 @@
     --recorde: #1c1a12; --laranja: #f0956b; --laranja-suave: #3a2216; --recorde-borda: #4a3e1f;
     --seq-1: #1b2d4a; --seq-2: #24497c; --seq-3: #2f6bbd; --seq-4: #5b9cf0; --seq-5: #b9d6fb;
     --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70;
+    --cat-8: #c08a63; --cat-10: #8aa3bf; --cat-12: #7fa6ff; --mais-chuvoso: #b49af0; --mais-chuvoso-suave: #2c2346;
     --seq-txt-claro: #f2f5fa; --seq-txt-meio: #ffffff; --seq-txt-escuro: #0b1220;
     --topo: #15295f; --rodape: #0f1f48; --botao-forte: #3b6fd8; --menu-ativo: #1c2b47;
   }
@@ -67,6 +72,7 @@
   --recorde: #1c1a12; --laranja: #f0956b; --laranja-suave: #3a2216; --recorde-borda: #4a3e1f;
   --seq-1: #1b2d4a; --seq-2: #24497c; --seq-3: #2f6bbd; --seq-4: #5b9cf0; --seq-5: #b9d6fb;
     --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70;
+    --cat-8: #c08a63; --cat-10: #8aa3bf; --cat-12: #7fa6ff; --mais-chuvoso: #b49af0; --mais-chuvoso-suave: #2c2346;
     --seq-txt-claro: #f2f5fa; --seq-txt-meio: #ffffff; --seq-txt-escuro: #0b1220;
   --topo: #15295f; --rodape: #0f1f48; --botao-forte: #3b6fd8; --menu-ativo: #1c2b47;
 }
@@ -202,7 +208,8 @@ h3 { font-size: .95rem; margin: 0 0 .35rem; }
 .legenda-mapa { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; font-size: .78rem; color: var(--tinta-2); margin-top: .75rem; }
 
 /* módulos */
-.modulos { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.25rem; }
+.modulos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+@media (max-width: 70rem) { .modulos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .modulo { display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: border-color .15s; }
 .modulo:hover { border-color: var(--primaria); }
 .modulo .icone { width: 2.3rem; height: 2.3rem; border-radius: 10px; background: var(--primaria-suave); display: grid; place-items: center; margin-bottom: .9rem; }
@@ -242,14 +249,14 @@ svg text { font-family: inherit; }
 .ponto-dado:hover circle.marca, .ponto-dado:focus circle.marca { r: 6; }
 
 /* mapa de calor */
-.calor { display: grid; grid-template-columns: 3.5rem repeat(12, minmax(2.6rem, 1fr)); gap: 4px; min-width: 40rem; font-variant-numeric: tabular-nums; }
+.calor { display: grid; grid-template-columns: 3.5rem repeat(12, minmax(2.6rem, 1fr)) 5.2rem; gap: 4px; min-width: 46rem; font-variant-numeric: tabular-nums; }
 .calor .cab { font-size: .72rem; color: var(--tinta-3); text-align: center; padding-bottom: .25rem; }
 .calor .ano { font-weight: 600; font-size: .85rem; display: flex; align-items: center; }
 .calor .cel { height: 2.2rem; border-radius: 6px; display: grid; place-items: center; font-size: .8rem; font-weight: 600; cursor: default; }
 .calor .cel:hover, .calor .cel:focus { outline: 2px solid var(--tinta); outline-offset: 1px; }
 .calor .cel.sem { background: repeating-linear-gradient(135deg, var(--vazio) 0 4px, transparent 4px 8px); color: var(--tinta-3); font-weight: 400; border: 1px solid var(--grade); }
 .calor .cel.futuro { background: var(--superficie-2); color: var(--tinta-3); font-weight: 400; }
-.calor .f1 { background: var(--seq-1); color: var(--seq-txt-claro); }
+.calor .f1 { background: var(--seq-1); color: var(--seq-txt-claro); box-shadow: inset 0 0 0 1px var(--seq-2); }
 .calor .f2 { background: var(--seq-2); color: var(--seq-txt-claro); }
 .calor .f3 { background: var(--seq-3); color: var(--seq-txt-meio); }
 .calor .f4 { background: var(--seq-4); color: var(--seq-txt-escuro); }
@@ -299,6 +306,13 @@ td .sec { color: var(--tinta-3); font-size: .85em; }
 /* ---------- estações / qualidade ---------- */
 .estacoes-grade { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
 .estacoes-grade .mapa { border-radius: 12px; height: 32rem; }
+/* lista ao lado do mapa: mesma altura, com rolagem própria e cabeçalho fixo */
+@media (min-width: 90.01rem) {
+  .estacoes-grade { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .estacoes-grade .lista-rede { max-height: 32rem; overflow-y: auto; }
+  .estacoes-grade .lista-rede td, .estacoes-grade .lista-rede th { padding-inline: .55rem; }
+  .estacoes-grade .lista-rede thead th { position: sticky; top: 0; z-index: 1; }
+}
 #grafico-qualidade svg { display: block; }
 @media (max-width: 90rem) { .estacoes-grade { grid-template-columns: minmax(0, 1fr); } .estacoes-grade .mapa { height: 26rem; } }
 
@@ -533,3 +547,87 @@ td.no-limite { color: var(--atencao); font-weight: 700; }
 @media (max-width: 60rem) {
   .ajustes { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- Monitoramento: escolha de estações com cor e legenda dos cartões ---------- */
+.chips button .bola { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: .4rem; vertical-align: .05em; opacity: .35; }
+.chips button[aria-pressed="true"] .bola { opacity: 1; }
+.chips button[aria-pressed="true"] { color: var(--tinta); background: var(--superficie); border-width: 1.5px; }
+.legenda-cartoes { padding: .8rem 1rem; margin-bottom: .9rem; }
+
+/* ---------- Série histórica: ano mais chuvoso e clique no mapa de calor ---------- */
+.pilula.mais-chuvoso { background: var(--mais-chuvoso-suave); color: var(--mais-chuvoso); }
+tr.linha-mais-chuvoso td { background: var(--mais-chuvoso-suave); }
+tr.linha-mais-chuvoso td:first-child { box-shadow: inset 4px 0 0 var(--mais-chuvoso); }
+.calor .ano.mais-chuvoso { color: var(--mais-chuvoso); }
+.calor .ano.mais-chuvoso::after { content: "★"; font-size: .7rem; margin-left: .2rem; }
+.calor .cel:not(.futuro) { cursor: pointer; }
+.calor .cel.escolhida { outline: 3px solid var(--tinta); outline-offset: 1px; }
+.painel-mes { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--grade); }
+.painel-mes h3 { margin: 0 0 .2rem; }
+.painel-mes .grade-mes { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 1.5rem; margin-top: .75rem; }
+.barras-estacao { display: grid; gap: .35rem; font-size: .8rem; }
+.barras-estacao .linha { display: grid; grid-template-columns: 9.5rem 1fr 4.2rem; gap: .5rem; align-items: center; }
+.barras-estacao .linha span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tinta-2); }
+.barras-estacao i { display: block; height: .7rem; border-radius: 4px; background: var(--superficie-2); overflow: hidden; }
+.barras-estacao i b { display: block; height: 100%; border-radius: 4px; }
+.barras-estacao .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.barras-estacao .sem { color: var(--tinta-3); font-weight: 400; }
+@media (max-width: 760px) { .painel-mes .grade-mes { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Manual do CPP-ROC-SORT (manual.html) ---------- */
+.manual .numero-secao { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  background: var(--primaria-suave); color: var(--primaria); font-size: .8rem; font-weight: 800; margin-bottom: .5rem; }
+.manual .indice ol { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin: .5rem 0 0; padding-left: 1.1rem; font-size: .88rem; }
+.manual .indice a { color: var(--tinta-2); }
+.manual .indice a:hover { color: var(--primaria); }
+.manual .fluxo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; counter-reset: passo; }
+.manual .passo { position: relative; }
+.manual .passo p { font-size: .85rem; color: var(--tinta-2); margin: 0; }
+.manual .passo:not(:last-child)::after { content: "→"; position: absolute; right: -1.05rem; top: 1.2rem; color: var(--tinta-3); font-weight: 700; }
+.manual .bolha { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 10px; background: var(--primaria);
+  color: #fff; font-weight: 800; margin-bottom: .6rem; }
+.manual table.mini { margin-top: .75rem; font-size: .78rem; }
+.manual table.mini th, .manual table.mini td { padding: .35rem .5rem; }
+.manual .tabela-texto td { white-space: normal; }
+.manual .tabela-texto td:first-child { white-space: nowrap; }
+.manual .criterio h3 .chip-classe { margin-right: .2rem; }
+@media (max-width: 60rem) {
+  .manual .fluxo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .manual .passo::after { display: none; }
+}
+@media (max-width: 36rem) { .manual .fluxo { grid-template-columns: minmax(0, 1fr); } }
+@media print {
+  .lateral, .faixa-topo, .rodape, .nao-imprimir, .recolher { display: none !important; }
+  body { background: #fff; }
+  .manual .cartao { break-inside: avoid; box-shadow: none; }
+  .manual .bloco { break-inside: avoid-page; }
+}
+
+/* ---------- mapa de calor: régua de faixas, total do ano, média do mês ---------- */
+.legenda-calor { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .75rem 1.5rem; margin: .25rem 0 1rem; }
+.escala-calor { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; flex: 1 1 18rem; min-width: 0; max-width: 34rem; }
+@media (max-width: 36rem) { .escala-calor strong { font-size: .7rem; } .escala-calor small { font-size: .62rem; } }
+.escala-calor > div { display: flex; flex-direction: column; gap: .1rem; font-size: .74rem; }
+.escala-calor .bloco { height: .7rem; border-radius: 3px; margin-bottom: .25rem; }
+.escala-calor > div:first-child .bloco { border-radius: 6px 3px 3px 6px; }
+.escala-calor > div:last-child .bloco { border-radius: 3px 6px 6px 3px; }
+.escala-calor strong { font-size: .78rem; }
+.escala-calor small { color: var(--tinta-3); }
+.escala-calor .f1 { background: var(--seq-1); box-shadow: inset 0 0 0 1px var(--seq-2); }
+.escala-calor .f2 { background: var(--seq-2); } .escala-calor .f3 { background: var(--seq-3); }
+.escala-calor .f4 { background: var(--seq-4); } .escala-calor .f5 { background: var(--seq-5); }
+.chave.vazio-futuro { background: var(--superficie-2); border: 1px solid var(--grade); }
+.calor .cab.tot { font-weight: 600; color: var(--tinta-2); padding-left: .4rem; }
+.calor .cab.ativo, .calor .ano.ativo { color: var(--primaria); font-weight: 800; }
+.calor .tot { margin-left: .4rem; display: flex; flex-direction: column; justify-content: center; padding: 0 .55rem; border-radius: 6px;
+  background: var(--superficie-2); line-height: 1.1; }
+.calor .tot strong { font-size: .85rem; }
+.calor .tot small { font-size: .66rem; color: var(--tinta-3); }
+.calor .tot.vazio strong { color: var(--tinta-3); }
+.calor .tot.mais-chuvoso { background: var(--mais-chuvoso-suave); }
+.calor .tot.mais-chuvoso strong { color: var(--mais-chuvoso); }
+.calor .ano.media { font-size: .78rem; color: var(--tinta-2); margin-top: .35rem; }
+.calor .media { margin-top: .35rem; padding-top: .45rem; border-top: 2px solid var(--grade); text-align: center; font-size: .78rem;
+  font-weight: 700; color: var(--tinta-2); }
+.calor .ano.media { border-top: 2px solid var(--grade); padding-top: .45rem; }
+.calor .media.tot-vazio { margin-left: .4rem; }

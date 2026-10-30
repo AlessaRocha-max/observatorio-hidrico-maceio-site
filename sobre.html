@@ -36,6 +36,7 @@
         <li>Leituras somadas por hora, dia (horário de Maceió), mês e ano.</li>
         <li>Um mês ou ano só tem total quando pelo menos 90% dos dias foram medidos. Hora sem leitura fica vazia — nunca vira zero.</li>
         <li>Validação: o INMET deu 1.915 mm em 2025, contra ~1.900 mm do balanço da Defesa Civil. CEMADEN × INMET: correlação 0,98 nos meses bons.</li>
+        <li><a href="#calculo">Passo a passo completo, logo abaixo ↓</a></li>
       </ul>
     </div>
     <div class="cartao">
@@ -44,6 +45,56 @@
         <li>Um robô baixa os dados todo dia e guarda cada arquivo com data, hora, origem e impressão digital (<em>hash</em>).</li>
         <li>Nada é sobrescrito nem corrigido à mão: os meses suspeitos ficam marcados, não apagados.</li>
       </ul>
+    </div>
+  </section>
+
+  <section class="bloco" id="calculo" aria-labelledby="titulo-calculo">
+    <div class="cartao-cabeca" style="margin-bottom:.75rem">
+      <div>
+        <h2 id="titulo-calculo">Como o cálculo é feito, passo a passo</h2>
+        <p class="texto">Do pluviômetro até os números do site. As mesmas regras valem para o INMET e para o CEMADEN.</p>
+      </div>
+    </div>
+    <div class="colunas">
+      <div class="cartao criterio">
+        <h3 style="margin-top:0">1. A leitura</h3>
+        <p>O pluviômetro mede a chuva em milímetros (1 mm = 1 litro de água por metro quadrado). O CEMADEN manda uma leitura a cada
+          10 minutos quando chove e uma por hora quando está seco; o INMET manda uma por hora. Tudo é guardado no horário universal (UTC).</p>
+        <h3>2. A hora</h3>
+        <p>Somam-se as leituras de cada hora. Leitura repetida (o mesmo mês baixado duas vezes) conta uma vez só. Valor negativo ou
+          acima de 150 mm em 1 hora é marcado como <strong>suspeito</strong> e sai das contas. Hora sem leitura fica vazia — nunca vira zero,
+          porque zero quer dizer "não choveu".</p>
+        <h3>3. O dia</h3>
+        <p>Os dias seguem o horário de Maceió (UTC−3). O total do dia é a soma das horas, e o dia só conta como <strong>medido</strong>
+          se a estação mandou dados em pelo menos 20 das 24 horas.</p>
+      </div>
+      <div class="cartao criterio">
+        <h3 style="margin-top:0">4. O mês e a cobertura</h3>
+        <p><strong>Cobertura</strong> é a porcentagem dos dias do mês que foram medidos. O mês só ganha total com cobertura de
+          pelo menos <strong>90%</strong>. Abaixo disso o total fica vazio; a "soma parcial" existe só para conferir.</p>
+        <p style="margin-top:.4rem">Exemplo: setembro tem 30 dias. Com 28 dias medidos (93%) o mês tem total; com 26 (87%), não.</p>
+        <h3>5. O mês é plausível?</h3>
+        <p>Cobertura alta não garante dado bom: um pluviômetro entupido marca 0,0 o mês inteiro. Por isso o mês fica
+          <strong>suspeito</strong> se deu zero absoluto, ou se ficou abaixo de 20% da estimativa do Open-Meteo para o ponto mais
+          próximo. Mês suspeito sai das contas, mas não é apagado.</p>
+        <h3>6. O ano</h3>
+        <p>Soma dos meses. Também precisa de 90% dos dias medidos; o ano corrente aparece como "em andamento". O
+          <strong>ano mais chuvoso</strong> só é escolhido entre anos completos e sem mês suspeito.</p>
+      </div>
+      <div class="cartao criterio">
+        <h3 style="margin-top:0">7. Chuva típica da cidade (mediana)</h3>
+        <p>Em cada mês (ou dia), as estações com dado completo são postas em ordem e pega-se o valor do meio. A mediana não se deixa
+          levar por uma estação só com valor muito alto ou muito baixo. Exemplo: 80, 95, 110, 120 e 300 mm → mediana 110 mm.</p>
+        <h3>8. Série combinada (proposta)</h3>
+        <p>Usa o INMET A303 quando o mês dele está completo e, nos meses em que ele falhou, a mediana do CEMADEN. Ainda está em
+          discussão no grupo.</p>
+        <h3>9. Chuvas extremas</h3>
+        <p>Para cada estação e ano: a maior chuva em 1 hora, em 1 dia e em 72 horas (3 dias seguidos, todos medidos), e quantos
+          dias passaram de 50 mm e de 100 mm.</p>
+        <h3>10. Janelas do Monitoramento</h3>
+        <p>A chuva de 72 h, 7 ou 30 dias é a soma dos dias medidos na janela. Se faltou algum dia, o valor aparece com
+          asterisco (mm*). As 5 faixas de chuva em 24 h ainda são provisórias.</p>
+      </div>
     </div>
   </section>
 

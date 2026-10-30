@@ -68,6 +68,24 @@
   /** Total de um mês numa estação, só se o mês estiver completo e coerente. */
   const totalOk = (id, p) => { const v = D.mensal[id]?.[p]; return v && v[3] === "ok" ? v[0] : null; };
 
+  /** Faixas de chuva num mês: [limite superior em mm, nome, texto] — as mesmas no mapa de calor e no mapa da Visão geral. */
+  const FAIXAS_MES = [[50, "Seca", "até 50"], [150, "Pouca", "50 a 150"], [250, "Moderada", "150 a 250"],
+    [350, "Muita", "250 a 350"], [Infinity, "Muito alta", "mais de 350"]];
+
+  /** Último mês em que a estação mandou algum dado (null se nunca). */
+  const ultimoMesDe = (id) => Object.keys(D?.mensal[id] || {}).sort().at(-1) || null;
+  /** Por que a estação não tem dado no mês p: { curto, longo }, ou null se tem dado. */
+  function semDadoPorque(e, p) {
+    if (D.mensal[e.id]?.[p]) return null;
+    const ult = ultimoMesDe(e.id);
+    if (!ult) return { curto: "sem dado", longo: "A estação ainda não mandou dados." };
+    if (e.rede === "INMET" && ult < p)
+      return { curto: `INMET ainda não publicou ${MESES[+p.slice(5, 7) - 1]}`,
+        longo: `O INMET publica os dados em arquivos por ano; o último mês disponível é ${nomeMes(ult)}.` };
+    if (ult < p) return { curto: `parou em ${nomeMes(ult)}`, longo: `A estação não manda dados desde ${nomeMes(ult)}.` };
+    return { curto: "sem dado no mês", longo: "A estação não mandou dados neste mês." };
+  }
+
   /** Mediana das estações do CEMADEN com o mês completo. */
   function medianaCemaden(p) {
     const vals = cemaden.map((e) => [e, totalOk(e.id, p)]).filter(([, v]) => v != null);
@@ -201,6 +219,7 @@
     ["historico", "historico.html", "Série histórica", '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/>'],
     ["estacoes", "estacoes.html", "Estações", '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>'],
     ["decisao", "decisao.html", "Apoio à decisão", '<path d="M4 6h10M4 12h7M4 18h4"/><path d="m14 15 2.5 2.5L21 12"/>'],
+    ["manual", "manual.html", "Manual do método", '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6M9 11h6"/>'],
     ["sobre", "sobre.html", "Dados e método", '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>'],
   ];
   const icone = (caminho) => `<svg viewBox="0 0 24 24" aria-hidden="true">${caminho}</svg>`;
@@ -318,7 +337,7 @@
   }
 
   window.OBS = {
-    D, MESES, MESES_LONGOS, INMET, STATUS, COR_REDE, SERIES,
+    D, MESES, MESES_LONGOS, INMET, STATUS, COR_REDE, SERIES, ultimoMesDe, semDadoPorque, FAIXAS_MES,
     el, h, $, fmt, nomeMes, nomeMesLongo, dataCurta, dataLonga, anoMes, mediana, escalaBonita,
     estacoes, porId, medicao, cemaden, anoInicial, anoFinal, anos, mesesDoAno, todosMeses,
     totalOk, medianaCemaden, valorSerie, anoSerie, extremosDe,

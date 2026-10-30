@@ -91,9 +91,12 @@
   })();
 
   // ------------------------------------------------------------------ qualidade
-  (function qualidade() {
+  function qualidade() {
     const meses = O.todosMeses;
-    const cw = 10, ch = 18, gap = 2, esq = 170, topo = 22;
+    const caixa = $("grafico-qualidade");
+    const esq = 150, topo = 22, gap = 2, ch = 18;
+    // quadradinhos do tamanho que couber na largura (no celular, mínimo de 6 px e rolagem para o lado)
+    const cw = Math.max(6, Math.min(14, Math.floor((caixa.clientWidth - esq - 24) / meses.length) - gap));
     const W = esq + meses.length * (cw + gap) + 8, H = topo + O.medicao.length * (ch + gap) + 4;
     const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img",
       "aria-label": "Qualidade dos dados: um quadrado por mês e por estação" });
@@ -119,5 +122,7 @@
     $("grafico-qualidade").replaceChildren(svg);
     O.legenda("legenda-qualidade", [["", "var(--bom)", "completo e coerente"], ["", "var(--atencao)", "incompleto"],
       ["", "var(--critico)", "suspeito"], ["", "var(--vazio)", "sem dado"]]);
-  })();
+  }
+  qualidade();
+  O.aoRedimensionar($("grafico-qualidade"), qualidade);
 })();

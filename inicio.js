@@ -123,7 +123,7 @@
   function mostrarPainel(e) {
     selecionada = e;
     const i = infoEstacao(e);
-    const pilula = !i.bruto ? h("span", { class: "pilula critico", text: "sem dado no mês" })
+    const pilula = !i.bruto ? h("span", { class: "pilula critico", text: O.semDadoPorque(e, mes).curto, title: O.semDadoPorque(e, mes).longo })
       : i.status === "ok" ? h("span", { class: "pilula ok", text: "mês completo" })
       : i.status === "incompleto" ? h("span", { class: "pilula parcial", text: `incompleto (${fmt(i.bruto[2])}% dos dias)` })
       : h("span", { class: "pilula critico", text: "mês suspeito" });
@@ -188,8 +188,8 @@
   })();
 
   O.legenda("legenda-mapa", [
-    ["ponto", FAIXAS[0][1], "até 50 mm"], ["ponto", FAIXAS[1][1], "50–150"], ["ponto", FAIXAS[2][1], "150–250"],
-    ["ponto", FAIXAS[3][1], "250–350"], ["ponto", FAIXAS[4][1], "mais de 350 mm"], ["ponto", "#5b6577", "sem total no mês"],
+    ...O.FAIXAS_MES.map(([, nome, txt], i) => ["ponto", FAIXAS[i][1], `${nome} (${txt} mm)`]),
+    ["ponto", "#5b6577", "sem total no mês"],
   ]);
 
   // ------------------------------------------------------------------ "Qual estação você quer ver?"
@@ -221,14 +221,16 @@
     $("monitoradas").replaceChildren(...lista.map((e) => {
       const ps = Object.keys(D.mensal[e.id] || {}).sort();
       const b = D.mensal[e.id]?.[mes];
-      const pil = !b ? h("span", { class: "pilula sem-ponto", text: "sem dado no mês" })
+      const porque = O.semDadoPorque(e, mes);
+      const pil = !b ? h("span", { class: `pilula ${porque.curto.startsWith("parou") ? "critico" : "sem-ponto"}`, text: porque.curto, title: porque.longo })
         : b[3] === "ok" ? h("span", { class: "pilula ok", text: `${fmt(b[0])} mm em ${O.MESES[+mes.slice(5) - 1]}` })
         : b[3] === "incompleto" ? h("span", { class: "pilula parcial", text: "mês incompleto" })
         : h("span", { class: "pilula critico", text: "mês suspeito" });
       return h("a", { class: "cartao estacao-item", href: `historico.html?serie=${encodeURIComponent(e.id)}` }, [
         h("span", { class: `rede-selo ${e.rede.toLowerCase()}`, text: e.rede }),
         h("h3", { text: e.nome }),
-        h("p", { class: "nota", style: "margin:0", text: `Mede desde ${nomeMes(ps[0])}` }),
+        h("p", { class: "nota", style: "margin:0", text: porque?.curto.startsWith("parou")
+          ? `Mediu de ${nomeMes(ps[0])} a ${nomeMes(ps.at(-1))}` : `Mede desde ${nomeMes(ps[0])}` }),
         pil,
       ]);
     }));
@@ -240,10 +242,8 @@
   const ultimos = dias.slice(-30);
   if (ultimos.length) {
     $("diario-texto").textContent = `De ${dataLonga(ultimos[0])} a ${dataLonga(ultimos.at(-1))}. Cada barra é a chuva típica do dia ` +
-      `(mediana das estações com o dia completo). As linhas tracejadas marcam 30, 50 e 100 mm em um dia — ` +
-      `só referências, não são níveis de alerta.`;
+      `(mediana das estações com o dia completo).`;
   }
-  O.legenda("legenda-diario", [["", "var(--seq-3)", "chuva típica do dia"], ...REFS.map(([, cor, t]) => ["linha", cor, t])]);
 
   function desenharDiario() {
     if (!ultimos.length) { caixaDia.textContent = "Sem dados diários."; return; }
@@ -252,7 +252,14 @@
     const iw = W - m.l - m.r, ih = H - m.t - m.b;
     const dados = ultimos.map((d) => ({ d, v: medianaDia(d), lista: (porDia[d] || []).filter((x) => x.v != null) }));
     const maxV = Math.max(...dados.map((x) => x.v ?? 0));
-    const { topo, ticks } = O.escalaBonita(Math.max(maxV, 35), maxV > 60 ? 25 : 10);
+    const { topo, ticks } = O.escalaBonita(Math.max(maxV * 1.15, 10), maxV > 60 ? 25 : maxV > 25 ? 10 : 5);
+    // linhas de 30, 50 e 100 mm só aparecem quando a escala chega nelas
+    const refsVisiveis = REFS.filter(([v]) => v <= topo);
+    O.legenda("legenda-diario", [["", "var(--seq-3)", "chuva típica do dia"], ...refsVisiveis.map(([, cor, t]) => ["linha", cor, t])]);
+    // (com o index.html antigo no cache do navegador, o espaço da nota pode não existir)
+    if ($("nota-diario")) $("nota-diario").textContent = refsVisiveis.length
+      ? "As linhas tracejadas marcam chuva forte em um dia — só referências, não são níveis de alerta."
+      : `O dia mais chuvoso teve ${fmt(maxV, 1)} mm na cidade — as referências de chuva forte (30, 50 e 100 mm) ficam fora da escala.`;
     const y = (v) => m.t + ih - (Math.min(v, topo) / topo) * ih;
     const banda = iw / dados.length;
     const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img",

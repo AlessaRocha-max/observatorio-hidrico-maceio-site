@@ -3,7 +3,9 @@
   "use strict";
   const O = window.OBS, D = O.D;
   if (!D) return;
-  const { h, el, $, fmt, dataCurta, dataLonga, mediana } = O;
+  const { h, el, $, fmt, dataLonga, mediana, MESES } = O;
+  // dia com o mês por extenso curto: "18/set" (e "18/set/2026" quando pedir o ano)
+  const dataCurta = (iso, comAno) => `${iso.slice(8, 10)}/${MESES[+iso.slice(5, 7) - 1]}${comAno ? "/" + iso.slice(0, 4) : ""}`;
 
   // ⚠ FAIXAS PROVISÓRIAS (rascunho do Stitch), em mm por 24 horas. Quando a Defesa Civil
   // definir os níveis oficiais, troque só esta lista (limite superior de cada faixa).
@@ -40,7 +42,7 @@
 
   // ------------------------------------------------------------------ filtros
   const selDia = $("dia");
-  for (const d of [...dias].reverse()) selDia.append(h("option", { value: d, text: `${dataCurta(d)}/${d.slice(0, 4)}` }));
+  for (const d of [...dias].reverse()) selDia.append(h("option", { value: d, text: dataCurta(d, true) }));
   selDia.value = estado.dia;
   selDia.addEventListener("change", () => { estado.dia = selDia.value; desenhar(); });
   const botoesJanela = JANELAS.map(([n, t]) => {
@@ -121,12 +123,25 @@
   // ------------------------------------------------------------------ cartões das estações
   function pilulaStatus(e) {
     const b = D.mensal[e.id]?.[mes];
-    if (!b) return h("span", { class: "pilula sem-ponto", text: "— sem dado" });
+    if (!b) { const p = O.semDadoPorque(e, mes); return h("span", { class: "pilula sem-ponto", text: p.curto, title: p.longo }); }
     if (b[3] === "ok") return h("span", { class: "pilula ok", text: "mês completo" });
     if (b[3] === "incompleto") return h("span", { class: "pilula parcial", text: "mês incompleto" });
     return h("span", { class: "pilula critico", text: "mês suspeito" });
   }
+  function legendaCartoes() {
+    const itens = estado.janela === 1
+      ? FAIXAS.map((f, i) => ["ponto", f.cor, `${f.nome} (${textoFaixa(f, i)})`])
+      : [["ponto", "var(--bom)", "mês completo"], ["ponto", "var(--atencao)", "mês incompleto"], ["ponto", "var(--critico)", "mês suspeito"]];
+    itens.push(["", "var(--primaria)", "barra: cobertura do mês ≥ 90%"], ["", "var(--atencao)", "barra: cobertura < 90%"]);
+    O.legenda("legenda-cartoes", itens);
+    $("nota-legenda").textContent = (estado.janela === 1
+      ? "A etiqueta colorida de cada estação é a faixa da chuva naquele dia. "
+      : "Em janelas de mais de 1 dia, a etiqueta mostra como está o mês da estação. ") +
+      "mm* = faltou medir algum dia da janela, então o valor pode estar abaixo do real. " +
+      "Ponto verde: data do último dia com dado.";
+  }
   function cartoes() {
+    legendaCartoes();
     const lista = O.medicao.map((e) => ({ e, ...naJanela(e.id), b: D.mensal[e.id]?.[mes] }))
       .sort((a, b) => (b.soma ?? -1) - (a.soma ?? -1));
     $("nota-cartoes").textContent = `Chuva ${nomeJanela()}`;
@@ -165,30 +180,41 @@
   })();
 
   // ------------------------------------------------------------------ comparar estações
-  const CORES = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)"];
+  // uma cor fixa para cada estação (não muda quando marca ou desmarca outra)
   const comDado = O.medicao.filter((e) => porEstacao[e.id]);
+  const corDe = Object.fromEntries(comDado.map((e, i) => [e.id, `var(--cat-${(i % 14) + 1})`]));
   const total30 = (id) => Object.values(porEstacao[id] || {}).reduce((s, v) => s + (v ?? 0), 0);
   estado.comparar = [...comDado].sort((a, b) => total30(b.id) - total30(a.id)).slice(0, 3).map((e) => e.id);
   const chipsComparar = comDado.map((e) => {
-    const b = h("button", { type: "button", "aria-pressed": "false", text: e.nome });
+    const bola = h("span", { class: "bola" }); bola.style.background = corDe[e.id];
+    const b = h("button", { type: "button", "aria-pressed": "false" }, [bola, e.nome]);
     b.addEventListener("click", () => {
       const i = estado.comparar.indexOf(e.id);
-      if (i >= 0) estado.comparar.splice(i, 1);
-      else { if (estado.comparar.length >= 3) estado.comparar.shift(); estado.comparar.push(e.id); }
+      if (i >= 0) estado.comparar.splice(i, 1); else estado.comparar.push(e.id);
       desenharComparar();
     });
     b.dataset.id = e.id;
     return b;
   });
   $("escolha-comparar").replaceChildren(...chipsComparar);
+  const todas = h("button", { type: "button", class: "botao claro pequeno", text: "Marcar todas" });
+  const limpar = h("button", { type: "button", class: "botao claro pequeno", text: "Desmarcar todas" });
+  todas.addEventListener("click", () => { estado.comparar = comDado.map((e) => e.id); desenharComparar(); });
+  limpar.addEventListener("click", () => { estado.comparar = []; desenharComparar(); });
+  $("acoes-comparar").replaceChildren(todas, limpar);
 
   const caixaComp = $("grafico-comparar");
   function desenharComparar() {
-    for (const b of chipsComparar) b.setAttribute("aria-pressed", String(estado.comparar.includes(b.dataset.id)));
-    const series = estado.comparar.map((id, k) => ({ e: O.porId[id], cor: CORES[k] }));
+    for (const b of chipsComparar) {
+      const marcado = estado.comparar.includes(b.dataset.id);
+      b.setAttribute("aria-pressed", String(marcado));
+      b.style.borderColor = marcado ? corDe[b.dataset.id] : "";
+    }
+    // na ordem da lista de estações, para a legenda não pular
+    const series = comDado.filter((e) => estado.comparar.includes(e.id)).map((e) => ({ e, cor: corDe[e.id] }));
     O.legenda("legenda-comparar", [...series.map((s) => ["cheia", s.cor, s.e.nome]), ["linha", "var(--tinta-3)", "típica do dia"]]);
     const W = Math.max(320, caixaComp.clientWidth), H = 280;
-    const m = { t: 26, r: W < 500 ? 12 : 120, b: 28, l: 36 };
+    const m = { t: 26, r: W < 500 || series.length > 6 ? 12 : 120, b: 28, l: 36 };
     const iw = W - m.l - m.r, ih = H - m.t - m.b;
     const maxV = Math.max(10, ...series.flatMap((s) => dias.map((d) => porEstacao[s.e.id]?.[d] ?? 0)));
     const { topo, ticks } = O.escalaBonita(maxV, maxV > 60 ? 20 : maxV > 25 ? 10 : 5);
@@ -204,7 +230,7 @@
     const passo = W < 500 ? 7 : 3;
     dias.forEach((d, i) => {
       if (i % passo === 0 || i === dias.length - 1)
-        el("text", { x: x(i), y: H - 8, "text-anchor": "middle", class: "eixo-texto" }, svg).textContent = dataCurta(d);
+        el("text", { x: x(i), y: H - 8, "text-anchor": i === dias.length - 1 && m.r < 60 ? "end" : "middle", class: "eixo-texto" }, svg).textContent = dataCurta(d);
     });
     // linha com buracos: dia sem dado interrompe
     const caminho = (valores) => {
@@ -221,7 +247,7 @@
       const vals = dias.map((d) => porEstacao[s.e.id]?.[d] ?? null);
       el("path", { d: caminho(vals), fill: "none", style: `stroke: ${s.cor}; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round` }, svg);
       const iu = vals.findLastIndex((v) => v != null);
-      if (iu >= 0 && m.r > 60) finais.push({ s, yy: y(vals[iu]), xx: x(iu) });
+      if (iu >= 0 && m.r > 60 && series.length <= 6) finais.push({ s, yy: y(vals[iu]), xx: x(iu) });
     }
     // rótulos no fim das linhas, sem se sobrepor
     finais.sort((a, b) => a.yy - b.yy);
