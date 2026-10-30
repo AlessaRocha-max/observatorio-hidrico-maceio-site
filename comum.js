@@ -253,6 +253,8 @@
         h("a", { href, title: nome, "aria-current": id === pagina ? "page" : null, html: icone(ic) + `<span>${nome}</span>` }))),
       recolher,
       h("div", { class: "lateral-pe" }, [
+        h("a", { class: "link-apresentacao", href: "index.html?apresentacao=1",
+          html: icone('<circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/>') + "<span>Ver apresentação</span>" }),
         D ? h("div", { class: "situacao-dados" }, [h("span", { class: "ponto-status" }),
           h("div", {}, [h("strong", { text: `Dados até ${nomeMes(D.ultimo_mes)}` }), h("small", { text: `gerado em ${D.gerado_em.slice(0, 10)}` })])]) : null,
         h("p", { class: "emergencia-lateral" }, [h("strong", { text: "Emergência: 199" }), h("br"), "Defesa Civil de Maceió"]),

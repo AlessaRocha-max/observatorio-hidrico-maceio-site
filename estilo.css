@@ -631,3 +631,92 @@ tr.linha-mais-chuvoso td:first-child { box-shadow: inset 4px 0 0 var(--mais-chuv
   font-weight: 700; color: var(--tinta-2); }
 .calor .ano.media { border-top: 2px solid var(--grade); padding-top: .45rem; }
 .calor .media.tot-vazio { margin-left: .4rem; }
+
+/* ---------- apresentação de primeiro acesso (apresentacao.js) ---------- */
+html.ap-aberta { overflow: hidden; }
+.apresentacao { position: fixed; inset: 0; z-index: 2000; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; color: #fff;
+  padding: clamp(1rem, 3vw, 2rem); background: radial-gradient(circle at 25% 15%, #2a56b8 0%, #1e3a8a 45%, #0f2257 100%);
+  animation: aparecer .4s ease both; overflow-y: auto; }
+.apresentacao::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, .09) 1px, transparent 1.4px); background-size: 22px 22px; }
+.apresentacao.saindo { opacity: 0; transform: scale(1.02); transition: opacity .35s ease, transform .35s ease; }
+.apresentacao > * { position: relative; }
+.ap-topo { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.ap-marca { display: grid; grid-template-columns: auto auto; column-gap: .6rem; align-items: center; line-height: 1.1; }
+.ap-marca svg { grid-row: span 2; width: 2rem; height: 2rem; fill: #7cc0ff; }
+.ap-marca small { font-size: .62rem; letter-spacing: .12em; color: #b8cbe6; }
+.ap-pular { font: inherit; font-size: .85rem; color: #dbe7fb; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 999px; padding: .45rem 1rem; cursor: pointer; }
+.ap-pular:hover { background: rgba(255, 255, 255, .18); }
+.ap-palco { display: grid; place-items: center; padding-block: 1rem; touch-action: pan-y; }
+.ap-cena { width: min(100%, 64rem); display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(1rem, 4vw, 3rem);
+  align-items: center; animation: entrar .5s var(--suave) both; }
+.ap-desenho svg { width: 100%; height: auto; max-height: 52vh; display: block; filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .25)); }
+.ap-conversa { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .5rem; align-items: end; }
+.ap-guia .pingo { width: 100%; height: auto; overflow: visible; }
+.ap-fala { position: relative; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .18); border-radius: 22px;
+  padding: 1.25rem 1.4rem; backdrop-filter: blur(4px); margin-bottom: 2.2rem; }
+.ap-fala::before { content: ""; position: absolute; left: -9px; bottom: 1.6rem; width: 16px; height: 16px; transform: rotate(45deg);
+  background: rgba(255, 255, 255, .1); border-left: 1px solid rgba(255, 255, 255, .18); border-bottom: 1px solid rgba(255, 255, 255, .18); }
+.ap-passo { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #9fd2ff; }
+.ap-fala h2 { font-size: clamp(1.5rem, 3.2vw, 2.25rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin: .35rem 0 .6rem; color: #fff; }
+.ap-texto { margin: 0; color: #dbe7fb; font-size: 1rem; line-height: 1.5; }
+.ap-destinos { display: grid; gap: .5rem; margin-top: 1rem; }
+.ap-destino { display: flex; flex-direction: column; padding: .7rem .9rem; border-radius: 14px; background: #fff; color: #0f1b2d; text-decoration: none;
+  transition: transform .2s var(--suave), box-shadow .2s ease; }
+.ap-destino:hover, .ap-destino:focus-visible { transform: translateX(4px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+.ap-destino strong::after { content: " →"; color: #1d6fe0; }
+.ap-destino small { color: #4a5568; }
+.ap-base { display: flex; justify-content: center; align-items: center; gap: 1.25rem; }
+.ap-pontos { display: flex; gap: .45rem; }
+.ap-ponto { width: .6rem; height: .6rem; padding: 0; border-radius: 999px; border: 0; background: rgba(255, 255, 255, .35); cursor: pointer;
+  transition: width .3s var(--suave), background-color .3s ease; }
+.ap-ponto[aria-current="step"] { width: 1.8rem; background: #fff; }
+.ap-botao { font: inherit; font-weight: 700; font-size: .95rem; border-radius: 999px; padding: .7rem 1.4rem; cursor: pointer; border: 0;
+  background: #fff; color: #1e3a8a; min-width: 9rem; box-shadow: 0 8px 22px rgba(0, 0, 0, .25); }
+.ap-botao.claro { background: transparent; color: #dbe7fb; box-shadow: none; border: 1px solid rgba(255, 255, 255, .3); min-width: 0; }
+.ap-botao:disabled { opacity: 0; pointer-events: none; }
+.ap-botao:hover:not(:disabled) { transform: translateY(-1px); }
+.apresentacao :focus-visible { outline: 3px solid #ffd166; outline-offset: 2px; }
+.ap-rotulo { fill: rgba(255, 255, 255, .75); font-size: 11px; font-family: inherit; }
+
+/* movimentos (desligados para quem pede menos movimento, pela regra geral acima) */
+@keyframes ap-flutuar { from { transform: translateY(0); } to { transform: translateY(-7px); } }
+@keyframes ap-piscar { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes ap-acenar { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-22deg); } }
+@keyframes ap-chuva { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(235px); opacity: 0; } }
+@keyframes ap-encher { from { transform: translateY(58px); } to { transform: none; } }
+@keyframes ap-balanco { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+@keyframes ap-surgir { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes ap-pulsar { 0%, 100% { transform: scale(1); opacity: .25; } 50% { transform: scale(1.7); opacity: 0; } }
+@keyframes ap-folha { 0% { transform: translate(0, 0) rotate(0); opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(60px, -30px) rotate(14deg); opacity: 0; } }
+@keyframes ap-girar { to { transform: rotate(360deg); } }
+.pingo-corpo { animation: ap-flutuar 1.6s ease-in-out infinite alternate; }
+.pingo .olhos { transform-box: fill-box; transform-origin: center; animation: ap-piscar 4s infinite; }
+.pingo.acenando .braco-dir, .aceno { transform-box: fill-box; transform-origin: 0% 100%; animation: ap-acenar .9s ease-in-out infinite; }
+.chuva-gota { animation: ap-chuva 1.6s linear infinite; }
+.ap-nivel { animation: ap-encher 3s var(--suave) both; }
+.guarda-chuva { transform-box: fill-box; transform-origin: 50% 100%; animation: ap-balanco 2.2s ease-in-out infinite alternate; }
+.ponto-estacao { transform-box: fill-box; transform-origin: center; animation: ap-surgir .5s var(--suave) both; }
+.ponto-estacao .halo { transform-box: fill-box; transform-origin: center; animation: ap-pulsar 2.4s ease-out infinite; }
+.mes-marca { transform-box: fill-box; transform-origin: center; animation: ap-surgir .45s var(--suave) both; }
+.braco-robo { transform-box: fill-box; transform-origin: 0% 100%; animation: ap-balanco .8s ease-in-out infinite alternate; }
+.folha-voando { animation: ap-folha 1.8s ease-in-out infinite; }
+.antena { animation: ap-piscar 1.2s infinite; }
+.sol { transform-box: fill-box; transform-origin: center; animation: ap-girar 18s linear infinite; }
+
+@media (max-width: 48rem) {
+  .ap-cena { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+  .ap-desenho svg { max-height: 30vh; margin-inline: auto; }
+  .ap-conversa { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .ap-fala { padding: 1rem 1.1rem; margin-bottom: 1.4rem; }
+  .ap-texto { font-size: .92rem; }
+  .ap-marca small { display: none; }
+  .ap-base { gap: .75rem; }
+  .ap-botao { min-width: 0; padding: .65rem 1.1rem; }
+}
+
+/* link "Ver apresentação" no menu */
+.link-apresentacao { display: flex; align-items: center; gap: .5rem; font-size: .8rem; color: var(--tinta-3); text-decoration: none; padding: 0 .3rem; }
+.link-apresentacao:hover { color: var(--primaria); }
+.link-apresentacao svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
